@@ -8,7 +8,7 @@ public class Launcher {
         Scanner sc = new Scanner(System.in);
         String temp = sc.nextLine();
         String[] arguments = temp.split(" ");
-        Terminal.optionsParse(arguments);
+        OptionsParse.optionsParse(arguments);
         sc.close();
     }
 }

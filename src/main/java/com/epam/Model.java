@@ -1,19 +1,11 @@
 package com.epam;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-
 public class Model {
-
-    protected static int STACK_LENGTH;
-    protected static char[] mem;
-    protected static char[] program;
-    protected static int mem_pointer;
-    protected static int cmd_pointer;
-
-    protected static BufferedReader fileReader;
-    protected static BufferedReader input;
-    protected static BufferedWriter output;
+    protected static int memLength = 30000;
+    protected static char[] mem = new char[memLength];
+    protected static char[] program = new char[0];
+    protected static int mem_pointer = 0;
+    protected static int cmd_pointer = 0;
 
     protected static class Command {
         protected final static char SHIFT_RIGHT = '>';
