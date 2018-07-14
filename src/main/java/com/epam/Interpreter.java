@@ -15,6 +15,8 @@ public class Interpreter {
         this(30000);
     }
 
+    public Tape getTape() { return tape; }
+
     public void interpret(String sourceCode) {
         if (sourceCode == null)
             throw new IllegalArgumentException("sourceCode argument was null");
