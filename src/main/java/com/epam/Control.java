@@ -36,7 +36,6 @@ public class Control {
     }
 
     public void interpret() throws IOException {
-        String commands = "<>+-.,[]";
         while(instructionIdx != code.length()) {
             switch (code.charAt(instructionIdx)) {
                 case '<':
@@ -92,6 +91,7 @@ public class Control {
             }
 
             if(TRACING){
+                String commands = "<>+-.,[]";
                 if (commands.contains(Character.toString(code.charAt(instructionIdx)))) {
                     view.printMem(memory.getMem(), memory.getMemIdx(), code.charAt(instructionIdx));
                 }
