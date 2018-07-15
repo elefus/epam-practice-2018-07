@@ -4,13 +4,13 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Arrays;
 
-public class View {
-    public int requestInput() throws IOException {
-        return new InputStreamReader(System.in).read();
+public class TerminalView implements InterpreterView{
+
+    public char requestInput() throws IOException {
+        return (char) new InputStreamReader(System.in).read();
 
     }
-
-    public void print(char dataAtCurrentMemCell) {
+    public void printData(char dataAtCurrentMemCell) {
         System.out.println(dataAtCurrentMemCell);
     }
     public void printMem(char[] memory, int p_position, char c) {
@@ -19,6 +19,6 @@ public class View {
             mem[i] = memory[i];
         }
         System.out.println(Arrays.toString(mem));
-        System.out.println("Current pointer position: "+ p_position+ " ,current operation: " + c);
+        System.out.println("Current memory pointer position: {"+ p_position+ "} ,current operation: [" + c +"]");
     }
 }
