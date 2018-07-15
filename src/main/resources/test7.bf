@@ -1,38 +1,11 @@
-// x = x / x
-
-// Create decimal value 48 (zero code) in the cell #1 : (for test)
->++++++++
-[
-  <++++++
-  >-
-]
+// x = x / y
 
 // Enter and print input values :
 ,.                 enter 'x' value to cell #2 and print
->,.                enter 'x' value to cell #3 and print
-
-
-// Decimal translation (code of number 48 (zero code)) :
-<<[                until the cell #1 is not 0
-  >-               decrease cell #2
-  >-               decrease cell #3
-  <<-              decrease cell #1
-]                  check if the cell #1 is 0
-
-// Move 'x' value to cell #1 :
->[                 until the cell #2 is not 0
-  <+               increase cell #1 ('x' now)
-  >-               decrease cell #2 ('y' now)
-]                  check if the cell #2 is 0
-
-// Move 'y' value to cell #2 :
->[                 until the cell #3 is not 0
-  <+               increase cell #2
-  >-               decrease cell #3
-]                  check if the cell #3 is 0
+>,.                enter 'y' value to cell #3 and print
 
 // Clear temp cells (#3; 4; 5; 6) :
-[-]                clear cell #3
+>[-]               clear cell #3
 >[-]               clear cell #4
 >[-]               clear cell #5
 >[-]               clear cell #6
