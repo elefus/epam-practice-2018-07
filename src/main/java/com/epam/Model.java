@@ -3,7 +3,6 @@ package com.epam;
 public class Model {
     protected static int memLength = 30000;
     protected static char[] mem = new char[memLength];
-    protected static char[] program = new char[0];
     protected static int mem_pointer = 0;
     protected static int cmd_pointer = 0;
 

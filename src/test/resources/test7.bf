@@ -57,4 +57,4 @@
   >>              go to cell #3
 ]
 // Print 'x' value :
-<<.>.
+<<.

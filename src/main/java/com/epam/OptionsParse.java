@@ -1,6 +1,11 @@
 package com.epam;
 
 import org.apache.commons.cli.*;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.input.ReaderInputStream;
+
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 
 public class OptionsParse {
     private static Options opts;
@@ -13,24 +18,27 @@ public class OptionsParse {
             e.printStackTrace();
         }
 
+        InputStream in = System.in;
+        OutputStream out = System.out;
+
         if (cl.hasOption("h")) {
-            String option = (cl.getOptionValue("h") == null) ? "" : cl.getOptionValue("h");
-            if (option.contentEquals("file")) {
+            String value = (cl.getOptionValue("h") == null) ? "" : cl.getOptionValue("h");
+            if (value.contentEquals("file")) {
                 System.out.println("Option -f <FileName>:\tname of program file. This option is necessary.");
                 System.out.println("Example: -f test.bf");
-            } else if (option.contentEquals("view")) {
+            } else if (value.contentEquals("view")) {
                 System.out.println("Option -v:\tset graphic interface.");
                 System.out.println("Example: -v");
-            } else if (option.contentEquals("size")) {
+            } else if (value.contentEquals("size")) {
                 System.out.println("Option -s <memorySize>:\tset size of memory.");
                 System.out.println("Example: -s 40000");
-            } else if (option.contentEquals("i")) {
-                System.out.println("Option -i <InputStream>:\tset stream to read input data.");
-                System.out.println("Example: -i dataFile.txt");
-            } else if (option.contentEquals("o")) {
+            } else if (value.contentEquals("i")) {
+                System.out.println("Option -i <type> <name>:\tset stream to read input data.");
+                System.out.println("Example: -i file dataFile.txt");
+            } else if (value.contentEquals("o")) {
                 System.out.println("Option -o:\tset stream to write output data.");
                 System.out.println("Example: -o <OutputStream>");
-            } else if (option.contentEquals("t")) {
+            } else if (value.contentEquals("t")) {
                 System.out.println("Option -t:\ttrace the program, if needed.");
                 System.out.println("Example: -t");
             } else {
@@ -54,7 +62,7 @@ public class OptionsParse {
         if (cl.hasOption("f")) {
             Controller.setFileName(cl.getOptionValue("f"));
         } else {
-            System.out.println("Required key -f is missing.");
+            System.out.println("Required key -f is missing!");
             return;
         }
         if (cl.hasOption("v")) {
@@ -65,14 +73,41 @@ public class OptionsParse {
         if (cl.hasOption("s")) {
             try {
                 Controller.setMemLength(Integer.parseInt(cl.getOptionValue("s")));
-            } catch (Exception e) {
-                System.out.println("The argument of option -s must be natural number.");
+            } catch (NumberFormatException e) {
+                System.out.println("The argument of option -s must be natural number!");
                 return;
             }
         }
         if (cl.hasOption("i")) {
+            String[] opts = cl.getOptionValues("i");
+            if (opts[0].contentEquals("string")) {
+                in = IOUtils.toInputStream(opts[1], StandardCharsets.UTF_8);
+                Controller.setInStream(new InputStreamReader(in));
+            } else if (opts[0].contentEquals("file")) {
+                try {
+                    in = new FileInputStream(opts[1]);
+                    Controller.setInStream(new InputStreamReader(in));
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                }
+            } else {
+                System.out.println("Incorrect type of input stream!");
+                return;
+            }
         }
         if (cl.hasOption("o")) {
+            String[] opts = cl.getOptionValues("o");
+            if (opts[0].contentEquals("file")) {
+                try {
+                    out = new FileOutputStream(opts[1]);
+                    Controller.setOutStream(new OutputStreamWriter(out));
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                }
+            } else {
+                System.out.println("Incorrect type of input stream!");
+                return;
+            }
         }
         if (cl.hasOption("t")) {
             Controller.setIsTrace(true);
@@ -81,6 +116,13 @@ public class OptionsParse {
         }
 
         View.start();
+
+        try {
+            in.close();
+            out.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private static void initialize(String[] args) throws ParseException {
@@ -92,7 +134,7 @@ public class OptionsParse {
         opt3.setArgs(1);
         opt3.setArgName("size");
         Option opt4 = new Option("i", "input", true, "Name of input stream.");
-        opt4.setArgs(1);
+        opt4.setArgs(2);
         opt4.setArgName("inputStream");
         Option opt5 = new Option("o", "output", true, "Name of output stream.");
         opt5.setArgs(1);
@@ -112,6 +154,12 @@ public class OptionsParse {
         opts.addOption(opt7);
 
         DefaultParser dp = new DefaultParser();
-        cl = dp.parse(opts, args);
+        try {
+            cl = dp.parse(opts, args);
+        } catch (ParseException e) {
+            System.out.println("Can't parse input parameters!");
+            e.printStackTrace();
+            return;
+        }
     }
 }
