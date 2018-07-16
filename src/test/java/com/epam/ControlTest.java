@@ -2,7 +2,9 @@ package com.epam;
 
 import org.junit.jupiter.api.Test;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -37,6 +39,7 @@ class ControlTest {
         }
         result = memory.getMem()[0];
         assertEquals(39,result);
+
     }
     @Test
     void testSum(){
@@ -142,5 +145,22 @@ class ControlTest {
         }
         assertEquals(2, memory.getMem()[0]);
         assertEquals(15, memory.getMem()[1]);
+    }
+
+    @Test
+    void setCodeTest() {
+        StringBuilder code = new StringBuilder();
+        String line;
+        try(BufferedReader reader = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream("./../../test1.bf")))){
+            while((line = reader.readLine()) != null){
+                code.append(line)
+                    .append(System.lineSeparator());
+            }
+            Control control = new Control(false,"test1.bf",new Memory(20),new TerminalView());
+            assertEquals(code.toString(),control.getCode());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
     }
 }

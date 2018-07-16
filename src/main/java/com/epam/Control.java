@@ -161,4 +161,9 @@ public class Control {
             e.printStackTrace();
         }
     }
+
+    public String getCode() {
+        return code;
+    }
+
 }
