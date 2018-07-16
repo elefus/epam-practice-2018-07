@@ -2,41 +2,37 @@ package com.epam;
 
 import org.apache.commons.cli.*;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URISyntaxException;
-
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.security.InvalidParameterException;
+import java.rmi.UnexpectedException;
 
 import static java.util.stream.Collectors.joining;
 
 public class Control {
     private int instructionIdx = 0;
-    private Memory memory;
-    private InterpreterView view;
+    private final Memory memory;
+    private final InterpreterView view;
     private String code;
     private boolean TRACING;
 
-    public Control(boolean trace, String filename, Memory memory, InterpreterView view)
-            throws IOException, URISyntaxException {
+    public Control(boolean trace, String filename, Memory memory, InterpreterView view) {
         this.TRACING = trace;
         this.memory = memory;
         this.view = view;
-        getCode(filename);
+        setCode(filename);
     }
 
-    private void getCode(String filename) throws IOException, URISyntaxException {
-        if(getClass().getResource("./../../" + filename) == null){
-            throw new FileNotFoundException("File not found");
+    public void setCode(String filename) {
+        try {
+            code = Files.lines(Paths.get(getClass().getResource("./../../" + filename).toURI()))
+                    .collect(joining(System.lineSeparator())) + System.lineSeparator();
+        } catch (IOException | URISyntaxException e) {
+            e.printStackTrace();
         }
-        code = Files.lines(Paths.get(getClass().getResource("./../../" + filename).toURI()))
-                .collect(joining(System.lineSeparator())) + System.lineSeparator();
     }
-
     public void interpret() throws IOException {
-        String commands = "<>+-.,[]";
         while(instructionIdx != code.length()) {
             switch (code.charAt(instructionIdx)) {
                 case '<':
@@ -58,40 +54,28 @@ public class Control {
                     view.printData(memory.getDataAtCurrentCell());
                     break;
                 case '[':
-                    if(memory.getDataAtCurrentCell() == 0){
-                        int brackets = 1;
-                        while(code.charAt(instructionIdx)!=']' || brackets != 0){
-                            instructionIdx++;
-                            if(code.charAt(instructionIdx)=='['){
-                                brackets++;
-                            } else if(code.charAt(instructionIdx)==']'){
-                                brackets--;
-                            }
-                        }
+                     int idx = getPair(code);
+                    if(memory.getDataAtCurrentCell() == 0) {
+                        instructionIdx = idx;
                     }
                     break;
                 case ']':
+                    idx = getPair(code);
                     if(memory.getDataAtCurrentCell() != 0){
-                        int brackets = 1;
-                        while ((code.charAt(instructionIdx) != '[' || brackets != 0)){
-                            instructionIdx--;
-                            if(code.charAt(instructionIdx) == '['){
-                                brackets--;
-                            } else if(code.charAt(instructionIdx) == ']'){
-                                brackets++;
-                            }
-                        }
-
+                        instructionIdx = idx;
                     }
                     break;
                 case '/':
-                    while (System.lineSeparator().contains(Character.toString(code.charAt(instructionIdx)))) {
-                        instructionIdx++;
+                    if(code.charAt(instructionIdx+1) =='/') {
+                        while (!System.lineSeparator().contains(Character.toString(code.charAt(instructionIdx)))) {
+                            instructionIdx++;
+                        }
                     }
                     break;
             }
 
             if(TRACING){
+                String commands = "<>+-.,[]";
                 if (commands.contains(Character.toString(code.charAt(instructionIdx)))) {
                     view.printMem(memory.getMem(), memory.getMemIdx(), code.charAt(instructionIdx));
                 }
@@ -99,46 +83,82 @@ public class Control {
             instructionIdx++;
         }
     }
-    public static Control getCustomControl(String[] args)
-            throws ParseException, IOException, URISyntaxException {
+
+    private int getPair(String code) throws UnexpectedException {
+        int tIdx = instructionIdx;
+        boolean backwards = code.charAt(tIdx) == ']';
+        int brackets = 1;
+        if(!backwards) {
+            while (code.charAt(tIdx) != ']' || brackets != 0) {
+                tIdx++;
+                if (tIdx == code.length()) {
+                    throw new UnexpectedException("Missmatched brackets");//Not really sure witch exception to use
+                }
+                if (code.charAt(tIdx) == '[') {
+                    brackets++;
+                } else if (code.charAt(tIdx) == ']') {
+                    brackets--;
+                }
+            }
+            return tIdx;
+        }{
+            while ((code.charAt(tIdx) != '[' || brackets != 0)){
+                tIdx--;
+                if (tIdx == -1) {
+                    throw new UnexpectedException("Missmatched brackets");
+                }
+                if(code.charAt(tIdx) == '['){
+                    brackets--;
+                } else if(code.charAt(tIdx) == ']'){
+                    brackets++;
+                }
+            }
+            return tIdx;
+        }
+    }
+
+    private static void launchWithArgs(String[] args) throws IOException {
 
         CommandLineParser parser = new DefaultParser();
         Options options = new Options();
-        options.addOption("f","file",true,"filename to interpret");
-        options.addOption("s","size",true,"set memory size");
-        options.addOption("h","help",false,"view help");
-        options.addOption("g","gui",false,"launch GUI");
-        options.addOption("t","trace",false,"enable tracing");
 
-        CommandLine line = parser.parse(options,args);
-        if(line.hasOption("h")){
-            HelpFormatter formatter = new HelpFormatter();
-            String header = "Interpret brainfuck code";
-            String footer = "Not a complete list*";
-            formatter.printHelp("control -f <FILE> [-s <MemorySize>] [-h] [-t] [-g] ",header,options,footer);
-            return null;
-        }
-        if(!line.hasOption("f")){
-            throw new InvalidParameterException("Missing option -f ");
-        }
+        options.addOption("f", "file", true, "filename to interpret");
+        options.addOption("s", "size", true, "set memory size");
+        options.addOption("h", "help", false, "view help");
+        options.addOption("g", "gui", false, "launchWithArgs GUI");
+        options.addOption("t", "trace", false, "enable tracing");
+        try {
+            CommandLine line = parser.parse(options, args);
+            if (line.hasOption("h")) {
+                HelpFormatter formatter = new HelpFormatter();
+                String header = "Interprets brainfuck code";
+                String footer = "*Not a complete list*";
+                String cmdLineSyntax = "control -f <FILE> [-s <MemorySize>] [-h] [-t] [-g] ";
+                formatter.printHelp(cmdLineSyntax, header, options, footer);
+                return;
+            }
+            if(!line.hasOption("f")){
+                throw new MissingOptionException("Missing required option -f ");
+            }
+            boolean trace = line.hasOption("t");
+            int size = line.hasOption("s") ?Integer.parseInt(line.getOptionValue("s")):30000;
+            String filename = line.getOptionValue("f");
 
-        int size = line.hasOption("s")? Integer.parseInt(line.getOptionValue("s")):30000;
-        boolean trace = line.hasOption("t");
-        String filename = line.getOptionValue("f");
-        
-        return new Control(trace,filename,new Memory(size),new TerminalView());
+            new Control(trace, filename, new Memory(size), new TerminalView()).interpret();
+        } catch (ParseException  e) {
+            System.err.println(e.getMessage());
+        }catch (NumberFormatException e){
+            System.err.println("-s must have an int arg");
+        }
     }
 
 
     public static void main(String[] args) {
         try {
-            Control control = getCustomControl(args);
-            if(control != null) {
-                control.interpret();
-            }
-        } catch (ParseException | IOException | URISyntaxException | InvalidParameterException e) {
+            launchWithArgs(args);
+        } catch (IOException | NullPointerException e) {
             System.err.println(e.getMessage());
+            e.printStackTrace();
         }
     }
-
 }
