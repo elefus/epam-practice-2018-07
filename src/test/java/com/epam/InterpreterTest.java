@@ -19,7 +19,8 @@ public class InterpreterTest {
 
             StringBuilder builder = new StringBuilder();
             while (bufferedReader.ready()) {
-                builder.append(bufferedReader.readLine() + System.lineSeparator());
+                builder.append(bufferedReader.readLine());
+                builder.append(System.lineSeparator());
             }
 
             return builder.toString();
