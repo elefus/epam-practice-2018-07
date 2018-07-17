@@ -4,9 +4,54 @@ import org.apache.commons.cli.*;
 
 import java.io.*;
 
+class LaunchInfo {
+    public final int tapeLength;
+    public final String[] fileNames;
+
+    public LaunchInfo(int tapeLength, String[] fileNames) {
+        this.tapeLength = tapeLength;
+        this.fileNames = fileNames;
+    }
+}
+
 public class Launcher {
     public static void main(String[] args) {
-        Option tapeLengthOption = new Option("l", "tapelength", true,
+        LaunchInfo launchInfo;
+        try {
+            launchInfo = parseArgs(args);
+        } catch (ParseException e) {
+            System.out.println("Can't parse arguments");
+            e.printStackTrace();
+            return;
+        }
+
+        Interpreter interpreter = new Interpreter(launchInfo.tapeLength);
+
+        for (String file : launchInfo.fileNames) {
+            try {
+                interpreter.interpret(readAllLines(file));
+            } catch (IOException e) {
+                System.out.println("Failed to read " + file);
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public static String readAllLines(String fileName) throws IOException {
+        try (FileReader reader = new FileReader(fileName);
+             BufferedReader bufferedReader = new BufferedReader(reader)) {
+
+            StringBuilder builder = new StringBuilder();
+            while (bufferedReader.ready()) {
+                builder.append(bufferedReader.readLine());
+            }
+
+            return builder.toString();
+        }
+    }
+
+    public static LaunchInfo parseArgs(String[] args) throws ParseException {
+        Option tapeLengthOption = new Option("l", "tapeLength", true,
                 "Length of the tape");
 
         // interpreter.exe -s src1.bf src2.bf src3.bf ...
@@ -21,17 +66,10 @@ public class Launcher {
 
         CommandLineParser cmdLineParser = new DefaultParser();
         CommandLine cmdLine;
-        try {
-            cmdLine = cmdLineParser.parse(options, args);
-        } catch (ParseException e) {
-            System.out.println("Can't parse input parameters");
-            e.printStackTrace();
-            return;
-        }
+        cmdLine = cmdLineParser.parse(options, args);
 
-        Interpreter interpreter;
+        int tapeLength = 30000;
         if (cmdLine.hasOption("l")) {
-            int tapeLength;
             try {
                 tapeLength = Integer.parseInt(cmdLine.getOptionValue("l"));
                 if (tapeLength < 1)
@@ -39,32 +77,14 @@ public class Launcher {
             }
             catch (NumberFormatException e) {
                 System.out.println("Incorrect length of tape. It will be 30 000");
-                tapeLength = 30000;
             }
-            interpreter = new Interpreter(tapeLength);
-        } else {
-            interpreter = new Interpreter();
         }
 
+        String[] fileNames = new String[0];
         if (cmdLine.hasOption("s")) {
-            String[] files = cmdLine.getOptionValues("s");
-
-            for (String file : files) {
-                try (FileReader reader = new FileReader(file);
-                     BufferedReader bufferedReader = new BufferedReader(reader)) {
-
-                    StringBuilder builder = new StringBuilder();
-                    while (bufferedReader.ready()) {
-                        builder.append(bufferedReader.readLine());
-                    }
-
-                    interpreter.interpret(builder.toString());
-                } catch (FileNotFoundException e) {
-                    System.out.println("Can't find file " + file);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
+            fileNames = cmdLine.getOptionValues("s");
         }
+
+        return new LaunchInfo(tapeLength, fileNames);
     }
 }
