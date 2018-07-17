@@ -1,10 +1,10 @@
 package com.epam;
 
-class Input {
-
+class Input
+{
   public static void main(String[] args)
   {
-    Controller controller = new Controller();
-    controller.parsing(args[0]);
+    Parser parser = new Parser();
+    parser.parsing(args);
   }
 }
