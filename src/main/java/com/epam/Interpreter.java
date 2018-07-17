@@ -5,14 +5,16 @@ import java.util.Scanner;
 public class Interpreter {
     private Tape tape;
     private Scanner scanner;
+    private View view;
 
-    public Interpreter(int tapeLength) {
+    public Interpreter(int tapeLength, View view) {
         tape = new Tape(tapeLength);
         scanner = new Scanner(System.in);
+        this.view = view;
     }
 
     public Interpreter() {
-        this(30000);
+        this(30000, new ConsoleView());
     }
 
     public Tape getTape() { return tape; }
@@ -27,8 +29,8 @@ public class Interpreter {
                 case '<': tape.shiftLeft(); break;
                 case '+': tape.increment(); break;
                 case '-': tape.decrement(); break;
-                case '.': System.out.print(tape.getValue()); break;
-                case ',': tape.setValue(scanner.next().charAt(0)); break;
+                case '.': view.print(tape.getValue()); break;
+                case ',': tape.setValue(view.read()); break;
                 case '[':
                     if (tape.getValue() == 0) {
                         i++;

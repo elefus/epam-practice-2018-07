@@ -25,7 +25,7 @@ public class Launcher {
             return;
         }
 
-        Interpreter interpreter = new Interpreter(launchInfo.tapeLength);
+        Interpreter interpreter = new Interpreter(launchInfo.tapeLength, new ConsoleView());
 
         for (String file : launchInfo.fileNames) {
             try {
