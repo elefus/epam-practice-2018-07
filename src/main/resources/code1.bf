@@ -1,3 +1,6 @@
+x=y
+
+
 [+]          x(cell #0) = 0
 >+++++       y(cell #0) = 5
 >[+]         counter(cell #2) = 0

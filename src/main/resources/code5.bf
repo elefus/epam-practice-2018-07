@@ -1,3 +1,6 @@
+x=xx
+
+
 +++++ +++++  x(cell #0) = 10
 >[+]         y(cell #1) = 0
 >[+]         counter0(cell #2) = 0
@@ -22,4 +25,4 @@
     >>-      counter1 sub 1
   ]
   <-         counter0 sub 1
-]
+]<<.
