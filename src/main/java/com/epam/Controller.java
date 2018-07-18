@@ -4,7 +4,6 @@ import org.apache.commons.cli.*;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -28,38 +27,39 @@ public class Controller {
         return code;
     }
 
-    private static void interpret(String code) throws IOException {
+    private static void interpret(String code, Cells cells, View view) throws IOException {
         int openedBrackets;
         for (int i = 0; i < code.length(); i++) {
+
             openedBrackets = 1;
             switch (code.charAt(i)) {
                 case '+':
-                    Cells.add();
+                    cells.add();
                     break;
 
                 case '-':
-                    Cells.sub();
+                    cells.sub();
                     break;
 
                 case '>':
-                    Cells.shiftRight();
+                    cells.shiftRight();
                     break;
 
                 case '<':
-                    Cells.shiftLeft();
+                    cells.shiftLeft();
                     break;
 
                 case '.':
-                    System.out.println(Cells.cells[Cells.currentCell]);                     //перенести во вью
+                    view.printSymbol(cells.getCells()[cells.getCurrentCell()]);
                     break;
 
                 case ',':
-                    char symbol = (char) new InputStreamReader(System.in).read();           // Перенести во вью
-                    Cells.input(symbol);
+                    int symbol = view.readSymbol();
+                    cells.input((char) symbol);
                     break;
 
                 case '[':
-                    if (Cells.cells[Cells.currentCell] == 0) {
+                    if (cells.getCells()[cells.getCurrentCell()] == 0) {
                         while (openedBrackets != 0 || code.charAt(i) != ']') {
                             i++;
                             if (code.charAt(i) == '[') {
@@ -73,7 +73,7 @@ public class Controller {
                     break;
 
                 case ']':
-                    if (Cells.cells[Cells.currentCell] != 0) {
+                    if (cells.getCells()[cells.getCurrentCell()] != 0) {
                         while (openedBrackets != 0 || code.charAt(i) != '[') {
                             i--;
                             if (code.charAt(i) == ']') {
@@ -91,7 +91,7 @@ public class Controller {
             if (trace) {
                 String commands = "<>+-.,";
                 if (commands.contains(Character.toString(code.charAt(i)))) {
-                    View.print(Cells.getCells(), Cells.getCurrentCell(), delay);
+                    view.print(cells.getCells(), cells.getCurrentCell(), delay);
                 }
             }
         }
@@ -107,6 +107,7 @@ public class Controller {
         options.addOption("h", "help", false, "Help");
         options.addOption("t", "trace", true, "Tracing in milliseconds");
         CommandLine line = parser.parse(options, args);
+
         if (line.hasOption("h")) {
             HelpFormatter formatter = new HelpFormatter();
             String header = "Interpreter for brainFuck";
@@ -115,18 +116,25 @@ public class Controller {
             formatter.printHelp(cmdLineSyntax, header, options, footer);
             return;
         }
+
         if (!line.hasOption("f")) {
             throw new MissingOptionException("Missing required option -f ");
         }
         String filename = line.getOptionValue("f");
+
         if (line.hasOption("s")) {
             numOfCells = Integer.parseInt(line.getOptionValue("s"));
         }
-        trace = line.hasOption("t");
-        delay = Integer.parseInt(line.getOptionValue("t"));
 
-        Cells.create(numOfCells);
+        if (line.hasOption("t")) {
+            trace = line.hasOption("t");
+            delay = Integer.parseInt(line.getOptionValue("t"));
+        }
+
+        Cells cells = new Cells(numOfCells);
+        View view = new View();
+
         String code = getCode(filename);
-        interpret(code);
+        interpret(code, cells, view);
     }
 }

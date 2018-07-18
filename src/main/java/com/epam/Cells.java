@@ -2,12 +2,12 @@ package com.epam;
 
 public class Cells {
 
-    public static int[] cells;
-    public static int currentCell;
+    private int[] cells;
+    private int currentCell;
     private static int numOfCells;
     private static final int cellSize = 256;
 
-    public static void create(int num){
+    public Cells(int num) {
         numOfCells = num;
         cells = new int[numOfCells];
         for (int i = 0; i < numOfCells; i++) {
@@ -15,43 +15,43 @@ public class Cells {
         }
     }
 
-    public static int[] getCells(){
+    public int[] getCells() {
         return cells;
     }
 
-    public static int getCurrentCell(){
+    public int getCurrentCell() {
         return currentCell;
     }
 
-    public static void add(){
+    public void add() {
         cells[currentCell]++;
-        if (cells[currentCell] == cellSize+1) {
+        if (cells[currentCell] == cellSize + 1) {
             cells[currentCell] = 0;
         }
     }
 
-    public static void sub(){
+    public void sub() {
         cells[currentCell]--;
         if (cells[currentCell] == -1) {
             cells[currentCell] = cellSize;
         }
     }
 
-    public static void shiftRight(){
+    public void shiftRight() {
         currentCell++;
-        if (currentCell == numOfCells+1){
+        if (currentCell == numOfCells + 1) {
             currentCell = 0;
         }
     }
 
-    public static void shiftLeft(){
+    public void shiftLeft() {
         currentCell--;
-        if (currentCell == -1){
+        if (currentCell == -1) {
             currentCell = numOfCells;
         }
     }
 
-    public static void input(char symbol){
+    public void input(char symbol) {
         cells[currentCell] = symbol;
     }
 }

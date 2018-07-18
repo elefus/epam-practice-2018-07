@@ -1,15 +1,28 @@
 package com.epam;
 
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.concurrent.TimeUnit;
 
 public class View {
-    public static void print(int[] cells, int currentCell, int delay) {
 
-        for (int i = 0; i < cells.length; i++) {
-            System.out.print(cells[i]);
-            if (cells[i] < 10) {
+    private InputStreamReader input = new InputStreamReader(System.in);
+
+    public void printSymbol(int cell) {
+        System.out.println((char) cell);
+    }
+
+    public int readSymbol() throws IOException {
+        return input.read();
+    }
+
+    public void print(int[] cells, int currentCell, int delay) {
+
+        for (int cell : cells) {
+            System.out.print(cell);
+            if (cell < 10) {
                 System.out.print("    ");
-            } else if (cells[i] < 100) {
+            } else if (cell < 100) {
                 System.out.print("   ");
             } else {
                 System.out.print("  ");

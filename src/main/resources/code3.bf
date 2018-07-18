@@ -14,4 +14,4 @@ x=x minus y
 [            while(counter)
   <+         y add 1
   >-         counter sub 1
-]
+],+.
