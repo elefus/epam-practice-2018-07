@@ -1,2 +1,2 @@
-,[-] // x = 0 +++++++++++ (test commands not working in comments)
+-[-]+ // x = 0 +++++++++++ (test commands not working in comments)
 

@@ -2,23 +2,29 @@ package com.epam;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.Arrays;
 
-public class TerminalView implements InterpreterView{
+public class TerminalView implements InterpreterView {
 
-    public char requestInput() throws IOException {
-        System.out.print("Awaiting input: ");
-        return (char) new InputStreamReader(System.in).read();
+  @Override
+  public char requestInput() throws IOException {
+    System.out.print("Awaiting input: ");
+    return (char) new InputStreamReader(System.in).read();
+  }
+
+  @Override
+  public void printData(char dataAtCurrentMemCell) {
+    System.out.println(dataAtCurrentMemCell);
+  }
+
+  @Override
+  public void printMem(char[] memory, int p_position, int c) {
+
+    for (char aMemory : memory) {
+      System.out.print(((int) aMemory) + ", ");
     }
-    public void printData(char dataAtCurrentMemCell) {
-        System.out.println(dataAtCurrentMemCell);
-    }
-    public void printMem(char[] memory, int p_position, char c) {
-        int[] mem = new int[memory.length];
-        for(int i = 0;i < mem.length;i++){
-            mem[i] = memory[i];
-        }
-        System.out.println(Arrays.toString(mem));
-        System.out.println("Current memory pointer position: ["+ p_position+ "] ,current operation: [" + c +"]");
-    }
+    System.out.println();
+
+    System.out.println(
+        "Current memory pointer position: [" + p_position + "] ,current operation: [" + c + "]");
+  }
 }
