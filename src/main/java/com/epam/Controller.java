@@ -10,8 +10,9 @@ import java.nio.file.Paths;
 
 import static java.util.stream.Collectors.joining;
 
-public class Controller {
 
+
+public class Controller {
     private static int numOfCells = 256;
     private static boolean trace;
     private static int delay;
@@ -29,8 +30,12 @@ public class Controller {
 
     private static void interpret(String code, Cells cells, View view) throws IOException {
         int openedBrackets;
-        for (int i = 0; i < code.length(); i++) {
 
+        class comand{
+
+        }
+
+        for (int i = 0; i < code.length(); i++) {
             openedBrackets = 1;
             switch (code.charAt(i)) {
                 case '+':
