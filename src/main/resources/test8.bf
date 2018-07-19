@@ -58,5 +58,5 @@
 ]                  check if the cell #7 is 0
 
 // Print 'x' value :
-<<<<<.>.
+<<<<<<.>.
 
