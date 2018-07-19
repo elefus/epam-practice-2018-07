@@ -1,38 +1,46 @@
 package com.epam;
 
-import java.io.IOException;
-
-import static com.epam.Controller.output;
-
 class Model
 {
-  // Model
-  protected static int cell_pointer = 0;
-  protected static int MAX_CELL_SIZE = 255;
-  protected static int MAX_ARRAY_SIZE;
-  protected static char[] array_of_cells = new char[MAX_ARRAY_SIZE];
+    Model(final int size) throws IllegalArgumentException {
+        if ((MAX_ARRAY_SIZE = size) < 1)
+            throw new IllegalArgumentException("Size of model cannot be less than 1");
 
-  public void setArraySize(String array_size) {
-    MAX_ARRAY_SIZE = Integer.parseInt(array_size);
-
-    if (MAX_ARRAY_SIZE < 0)
-      throw new IndexOutOfBoundsException("Array size less than 0");
+        arrayOfCells = new char[MAX_ARRAY_SIZE];
     }
 
-  public int getArraySize()
-  {
-    return MAX_ARRAY_SIZE;
-  }
+    public void incrementCellValue() {
+        if ((int)++arrayOfCells[actualIndex] > MAX_CELL_SIZE)
+            arrayOfCells[actualIndex] = (char) 0;
+    }
 
-  public class Tokens
-  {
-    public static final char INPUT     = ',';
-    public static final char OUTPUT    = '.';
-    public static final char FORWARD   = '>';
-    public static final char BACKWARD  = '<';
-    public static final char PLUS      = '+';
-    public static final char MINUS     = '-';
-    public static final char R_BRACKET = ']';
-    public static final char L_BRACKET = '[';
-  }
+    public void decrementCellValue() {
+        if ((int)--arrayOfCells[actualIndex] < 0)
+            arrayOfCells[actualIndex] = (char) MAX_CELL_SIZE;
+    }
+
+    public void incrementIndex() {
+        actualIndex = actualIndex + 1 > MAX_ARRAY_SIZE ? 0 : actualIndex + 1;
+    }
+
+    public void decrementIndex() {
+        actualIndex = actualIndex - 1 < 0 ? MAX_ARRAY_SIZE : actualIndex - 1;
+    }
+
+    public void setCellValue(char value) {
+        arrayOfCells[actualIndex] = value;
+    }
+
+    public char getCellValue() {
+        return arrayOfCells[actualIndex];
+    }
+
+    public int getCellIndex() {
+        return actualIndex;
+    }
+
+    private int actualIndex;
+    private char[] arrayOfCells;
+    private int MAX_ARRAY_SIZE;
+    private final int MAX_CELL_SIZE = 255;
 }

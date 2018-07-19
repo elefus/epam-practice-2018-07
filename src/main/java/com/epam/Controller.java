@@ -2,150 +2,123 @@ package com.epam;
 
 import java.io.*;
 
-class Controller extends Model
+class Controller
 {
-  // IO
-  private static BufferedReader input;
-  private static BufferedWriter output;
-
-  // Tracing
-  private boolean hasTrace = false;
-  public void setTrace() {
-    hasTrace = true;
-  }
-
-  public void initialize(String file_name, String new_size) {
-    try {
-      setArraySize(new_size);
-      initialize(file_name);
+    Controller(boolean isTrace, String fileName, Model model, View view) {
+        this.view = view;
+        this.model = model;
+        this.isTrace = isTrace;
+        getCodeArray(fileName);
     }
-    catch (NumberFormatException e) {
-      System.out.printf("Incorrect array size : '%s'%n", new_size);
+
+    private void getCodeArray(String fileName) {
+        try (InputStreamReader inp = new InputStreamReader(Input.class.getResourceAsStream("./../../" + fileName));
+             BufferedReader reader = new BufferedReader(inp)) {
+            String new_line;
+            StringBuilder builder = new StringBuilder();
+
+            while ((new_line = reader.readLine()) != null)
+                builder.append(new_line);
+
+            this.codeArray = builder.toString().toCharArray();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
-    catch (IndexOutOfBoundsException e) {
-      System.out.println(e.getMessage());
-    }
-  }
 
-  public void initialize(String file_name) {
+    public void processCommands() throws IOException {
+        for (int codeIndex = 0; codeIndex < codeArray.length; codeIndex++) {
+            switch (codeArray[codeIndex]) {
+                case Tokens.FORWARD:
+                    model.incrementIndex();
+                    break;
 
-    try (InputStreamReader inp = new InputStreamReader(Input.class.getResourceAsStream("./../../" + file_name));
-         BufferedReader buf = new BufferedReader(inp);
-         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-         BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(System.out)))
-    {
-      input = reader;
-      output = writer;
+                case Tokens.BACKWARD:
+                    model.decrementIndex();
+                    break;
 
-      String new_line;
-      StringBuilder string = new StringBuilder();
+                case Tokens.INCREMENT:
+                    model.incrementCellValue();
+                    break;
 
-      while((new_line = buf.readLine()) != null)
-        string.append(new_line);
+                case Tokens.DECREMENT:
+                    model.decrementCellValue();
+                    break;
 
-      process_commands(string.toString().toCharArray());
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-  }
+                case Tokens.INPUT:
+                    model.setCellValue(view.inputData());
+                    break;
 
-  private void process_commands(char[] code_array) throws IOException {
+                case Tokens.OUTPUT:
+                    view.outputData(model.getCellValue());
+                    break;
 
-    int bracket_counter = 0;
-    int current_pointer = 0;
+                case Tokens.L_BRACKET:
+                    if (model.getCellValue() == 0)
+                        codeIndex = getNewIndex(codeIndex, true);
+                    break;
 
-    for( ;current_pointer < code_array.length; current_pointer++)
-    {
-      switch (code_array[current_pointer])
-      {
-        case Tokens.FORWARD : {
-          try {
-            if (cell_pointer + 1 >= MAX_ARRAY_SIZE)
-              throw new IndexOutOfBoundsException("Pointer cell bigger than " + MAX_ARRAY_SIZE);
-            else
-              cell_pointer++;
-          } catch (IndexOutOfBoundsException e) {
-            e.getMessage();
-          }
+                case Tokens.R_BRACKET:
+                    if (model.getCellValue() != 0)
+                        codeIndex = getNewIndex(codeIndex, false);
+                    break;
 
-          break;
-        }
-        case Tokens.BACKWARD : {
-          try {
-            if (cell_pointer - 1 < 0)
-              throw new IndexOutOfBoundsException("Pointer cell less than " + MAX_ARRAY_SIZE);
-            else
-              cell_pointer--;
-          } catch (IndexOutOfBoundsException e) {
-            e.getMessage();
-          }
+                default:
+            }
 
-          break;
-        }
-        case Tokens.PLUS : {
-          if ((int)array_of_cells[cell_pointer] + 1 > MAX_CELL_SIZE)
-            array_of_cells[cell_pointer] = (char) 0;
-          else
-            array_of_cells[cell_pointer]++;
-
-          break;
-        }
-        case Tokens.MINUS : {
-          if ((int)array_of_cells[cell_pointer] - 1 < 0) {
-            array_of_cells[cell_pointer] = (char) MAX_CELL_SIZE;
-          } else {
-            array_of_cells[cell_pointer]--;
-          }
-
-          break;
-        }
-        case Tokens.L_BRACKET : {
-          if ((int)array_of_cells[cell_pointer] == 0) {
-            current_pointer = current_pointer + 1;
-
-            while(code_array[current_pointer] != ']' || bracket_counter > 0)
+            if(isTrace)
             {
-              if(code_array[current_pointer] == '[')
-                bracket_counter++;
-              else if(code_array[current_pointer] == ']')
-                bracket_counter--;
-
-              current_pointer++;
+                if("+-<>,.[]".contains(Character.toString(codeArray[codeIndex])))
+                    view.traceOperation(model.getCellIndex(), codeArray[codeIndex], model.getCellValue());
             }
-          }
-
-          break;
         }
-        case Tokens.R_BRACKET : {
-          if ((int) array_of_cells[cell_pointer] != 0) {
-            current_pointer--;
-
-            while (code_array[current_pointer] != '[' || bracket_counter > 0) {
-              if (code_array[current_pointer] == ']')
-                bracket_counter++;
-              else if (code_array[current_pointer] == '[')
-                bracket_counter--;
-
-              current_pointer--;
-            }
-
-            current_pointer--;
-          }
-
-          break;
-        }
-        case Tokens.INPUT : {
-          array_of_cells[cell_pointer] = (char)input.read();
-          break;
-        }
-        case Tokens.OUTPUT : {
-          if((int)array_of_cells[cell_pointer] == 0)
-            output.write('0');
-          else
-            output.write((int)array_of_cells[cell_pointer] + " ");
-          break;
-        }
-      }
     }
-  }
+
+    private int getNewIndex(int codeIndex, boolean leftBracket) {
+        int bracketsCounter = 0;
+
+        if(leftBracket) {
+            codeIndex++;
+
+            while(codeArray[codeIndex] != Tokens.R_BRACKET || bracketsCounter > 0) {
+                if(codeArray[codeIndex] == Tokens.L_BRACKET)
+                    bracketsCounter++;
+                else if(codeArray[codeIndex] == Tokens.R_BRACKET)
+                    bracketsCounter--;
+
+                codeIndex++;
+            }
+        } else {
+            codeIndex--;
+
+            while (codeArray[codeIndex] != Tokens.L_BRACKET || bracketsCounter > 0) {
+                if (codeArray[codeIndex] == Tokens.R_BRACKET)
+                    bracketsCounter++;
+                else if (codeArray[codeIndex] == Tokens.L_BRACKET)
+                    bracketsCounter--;
+
+                codeIndex--;
+            }
+
+            codeIndex--;
+        }
+
+        return codeIndex;
+    }
+
+    private class Tokens {
+        private static final char INPUT     = ',';
+        private static final char OUTPUT    = '.';
+        private static final char FORWARD   = '>';
+        private static final char BACKWARD  = '<';
+        private static final char INCREMENT = '+';
+        private static final char DECREMENT = '-';
+        private static final char R_BRACKET = ']';
+        private static final char L_BRACKET = '[';
+    }
+
+    private View view;
+    private Model model;
+    private boolean isTrace;
+    private char[] codeArray;
 }

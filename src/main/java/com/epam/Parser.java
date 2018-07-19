@@ -2,55 +2,45 @@ package com.epam;
 
 import org.apache.commons.cli.*;
 
+import java.io.IOException;
+
 class Parser
 {
-  private static Options options = null;
+    public void parse(String[] args) {
+        CommandLineParser parser = new DefaultParser();
 
-  private void createOptions() {
-    Option f_input = new Option("f", "f_input", true, "Input file to read data from");
-    f_input.setArgs(1);
-    f_input.setArgName("file_name");
+        try{
+            Options options = createOptions();
+            CommandLine line = parser.parse(options, args);
 
-    Option size = new Option("s", "size", true, "Size of array of cells in programm");
-    size.setRequired(false);
+            if(!line.hasOption("f"))
+                throw new MissingArgumentException("Missing required option 'f'");
 
-    Option tracing = new Option("tr", "tracing", false, "Tracing of commands in file");
-    tracing.setRequired(false);
+            int size = line.hasOption("s") ? Integer.parseInt(line.getOptionValue("s")) : 30000;
+            boolean isTrace = line.hasOption("tr");
 
-    options = new Options();
-    options.addOption(f_input);
-    options.addOption(size);
-    options.addOption(tracing);
-  }
-
-  public void parsing(String[] args) {
-    createOptions();
-    CommandLineParser parser = new DefaultParser();
-
-    try {
-      CommandLine cmd = parser.parse(options, args);
-
-      if(cmd.hasOption("f"))
-      {
-        Controller controller = new Controller();
-
-        if(cmd.hasOption("s"))
-        {
-          if(cmd.hasOption("tr"))
-            controller.setTrace();
-
-          controller.initialize(cmd.getOptionValue("f"), cmd.getOptionValue("s"));
+            new Controller(isTrace, line.getOptionValue("f"), new Model(size), new ConsoleView()).processCommands();
+        } catch (NumberFormatException | IOException e) {
+            e.printStackTrace();
+        } catch (MissingArgumentException e) {
+            System.out.println(e.getMessage());
+        } catch (ParseException e) {
+            e.printStackTrace();
         }
-        else
-        {
-          if(cmd.hasOption("tr"))
-            controller.setTrace();
-
-          controller.initialize(cmd.getOptionValue("f"));
-        }
-      }
-    } catch (ParseException e) {
-      e.printStackTrace();
     }
-  }
+
+    private Options createOptions() {
+        Option f_input = new Option("f", "f_input",true, "Input file to read data from");
+        Option  m_size = new Option("s", "size",   true, "Size of array of cells in program");
+        m_size.setRequired(false);
+        Option tracing = new Option("tr","trace",  false,"Tracing of commands in file");
+        tracing.setRequired(false);
+
+        Options options = new Options();
+        options.addOption(f_input);
+        options.addOption(m_size);
+        options.addOption(tracing);
+
+        return options;
+    }
 }
