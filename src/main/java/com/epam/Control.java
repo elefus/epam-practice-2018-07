@@ -2,10 +2,12 @@ package com.epam;
 
 import static java.util.stream.Collectors.joining;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -19,18 +21,20 @@ public class Control {
 
   private int instructionIdx = 0;
   private final Memory memory;
-  private final InterpreterView view;
+  private final View view;
   private String code;
-  private boolean TRACING;
+  private final boolean TRACING;
+  private boolean stop;
 
-  public Control(boolean trace, String filename, Memory memory, InterpreterView view)
+  public Control(boolean trace, String filename, Memory memory, View view)
       throws FileNotFoundException {
     this.TRACING = trace;
     this.memory = memory;
     this.view = view;
     code = getCodeFromFile(filename);
   }
-  private Control(Memory mem, InterpreterView view){
+
+  private Control(Memory mem, View view) {
     this.TRACING = true;
     this.memory = mem;
     this.view = view;
@@ -43,31 +47,23 @@ public class Control {
       System.err.println(e.getMessage());
       e.printStackTrace();
     }
-  }
-  public void reset(){
-    instructionIdx = 0;
-    memory.reset();
-  }
-  public String getCode() {
-    return code;
+    System.out.println();
   }
 
-  public String getCodeFromFile(String filename) throws FileNotFoundException {
-    String code = null;
-    if (getClass().getResource("./../../" + filename) == null) {
-      throw new FileNotFoundException();
-    }
-    try {
-      code = Files.lines(Paths.get(getClass().getResource("./../../" + filename).toURI()))
-          .collect(joining(System.lineSeparator())) + System.lineSeparator();
-    } catch (IOException | URISyntaxException e) {
-      e.printStackTrace();
-    }
-    return code;
+  public void reset() {
+    instructionIdx = 0;
+    memory.reset();
+    stop = false;
   }
 
   public void interpret() throws IOException {
     while (instructionIdx != code.length()) {
+      if (TRACING) {
+        String commands = "<>+-.,[]";
+        if (commands.contains(Character.toString(code.charAt(instructionIdx)))) {
+          view.printMem(memory.getMem(), memory.getMemIdx(), instructionIdx);
+        }
+      }
       switch (code.charAt(instructionIdx)) {
         case '<':
           memory.decMemIdx();
@@ -108,15 +104,46 @@ public class Control {
           }
           break;
       }
-
-      if (TRACING) {
-        String commands = "<>+-.,[]";
-        if (commands.contains(Character.toString(code.charAt(instructionIdx)))) {
-          view.printMem(memory.getMem(), memory.getMemIdx(), instructionIdx);
-        }
+      if (stop) {
+        break;
       }
       instructionIdx++;
     }
+    view.printMem(memory.getMem(), memory.getMemIdx(), instructionIdx);
+  }
+
+  public void setCode(String text) {
+    code = text;
+  }
+
+  public String getCode() {
+    return code;
+  }
+
+  public static String getCodeFromFile(String filename) throws FileNotFoundException {
+    String code = null;
+    Path path = Paths.get(new File(filename).getPath());
+    if (Control.class.getResource("./../../" + filename) != null) {
+      try {
+        path = Paths.get(Control.class.getResource("./../../" + filename).toURI());
+      } catch (URISyntaxException e) {
+        e.printStackTrace();
+      }
+    }
+    if (path == null) {
+      throw new FileNotFoundException();
+    }
+    try {
+      code = Files.lines(path)
+          .collect(joining(System.lineSeparator())) + System.lineSeparator();
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    return code;
+  }
+
+  public void setStop(boolean stop) {
+    this.stop = stop;
   }
 
   private int getPair(String code) throws IllegalStateException {
@@ -159,9 +186,9 @@ public class Control {
         formatter.printHelp(cmdLineSyntax, header, options, footer);
         return;
       }
-      if(line.hasOption("g")){
-        InterpreterView view = new SwingView();
-        Control control= new Control(new Memory(20),view);
+      if (line.hasOption("g")) {
+        View view = new SwingView();
+        Control control = new Control(new Memory(20), view);
         ((SwingView) view).initListeners(control);
         return;
       }
@@ -178,10 +205,5 @@ public class Control {
     } catch (NumberFormatException e) {
       System.err.println("-s must have an int arg");
     }
-  }
-
-
-  public void setCode(String text) {
-    code = text;
   }
 }

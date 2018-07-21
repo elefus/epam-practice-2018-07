@@ -12,7 +12,7 @@ public class Memory {
   }
 
   public void incMemIdx() {
-    memIdx = memIdx + 1 == size ? 0 : memIdx + 1;
+    memIdx = (memIdx + 1) % size;
   }
 
   public void decMemIdx() {
@@ -20,17 +20,15 @@ public class Memory {
   }
 
   public void incDataAtCurrentCell() {
-    mem[memIdx]++;
-    if (mem[memIdx] == 256) {
-      mem[memIdx] = 0;
-    }
+    mem[memIdx] = (char) ((mem[memIdx] + 1) % 256);
   }
+
 
   public void decDataAtCurrentCell() {
     if (mem[memIdx] == 0) {
       mem[memIdx] = 256;
     }
-    mem[memIdx]--;
+    mem[memIdx] = mem[memIdx] == 0 ? 255 : --mem[memIdx];
   }
 
   public void setDataAtCurrentCell(char data) {
@@ -48,7 +46,8 @@ public class Memory {
   public int getMemIdx() {
     return memIdx;
   }
-  public void reset(){
+
+  public void reset() {
     mem = new char[size];
     memIdx = 0;
   }

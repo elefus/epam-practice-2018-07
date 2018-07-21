@@ -3,12 +3,14 @@ package com.epam;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
-public class TerminalView implements InterpreterView {
+public class TerminalView implements View {
+
+  private InputStreamReader console = new InputStreamReader(System.in);
 
   @Override
   public char requestInput() throws IOException {
     System.out.print("Awaiting input: ");
-    return (char) new InputStreamReader(System.in).read();
+    return (char) console.read();
   }
 
   @Override

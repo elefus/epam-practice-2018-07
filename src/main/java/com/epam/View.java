@@ -2,7 +2,7 @@ package com.epam;
 
 import java.io.IOException;
 
-public interface InterpreterView {
+public interface View {
 
   char requestInput() throws IOException;
 
