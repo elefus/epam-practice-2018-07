@@ -1,89 +1,90 @@
 package com.epam;
 
 import java.io.*;
+import java.net.URISyntaxException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
-class Controller
-{
-    Controller(boolean isTrace, String fileName, Model model, View view) {
+class Controller {
+    private View view;
+    private Model model;
+    private boolean isTrace;
+    private char[] sourceCode;
+
+    private class Tokens {
+        static final char INPUT = ',';
+        static final char OUTPUT = '.';
+        static final char FORWARD = '>';
+        static final char BACKWARD = '<';
+        static final char INCREMENT = '+';
+        static final char DECREMENT = '-';
+        static final char L_BRACKET = '[';
+        static final char R_BRACKET = ']';
+    }
+
+    Controller(String fileName, Model model, View view, boolean isTrace) throws URISyntaxException, IOException {
         this.view = view;
         this.model = model;
         this.isTrace = isTrace;
-        getCodeArray(fileName);
+        this.sourceCode = getSourceCode(fileName);
     }
 
-    private void getCodeArray(String fileName) {
-        try (InputStreamReader inp = new InputStreamReader(Input.class.getResourceAsStream("./../../" + fileName));
-             BufferedReader reader = new BufferedReader(inp)) {
-            String new_line;
-            StringBuilder builder = new StringBuilder();
+    void process() throws IOException {
+        for (int codeIndex = 0; codeIndex < sourceCode.length; codeIndex++) {
+            if (isTrace)
+                if (",.><+-[]".contains(Character.toString(sourceCode[codeIndex])))
+                    view.traceCommand(model.getArrayIndex(), sourceCode[codeIndex], model.getCellValue());
 
-            while ((new_line = reader.readLine()) != null)
-                builder.append(new_line);
-
-            this.codeArray = builder.toString().toCharArray();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void processCommands() throws IOException {
-        for (int codeIndex = 0; codeIndex < codeArray.length; codeIndex++) {
-            switch (codeArray[codeIndex]) {
-                case Tokens.FORWARD:
-                    model.incrementIndex();
-                    break;
-
-                case Tokens.BACKWARD:
-                    model.decrementIndex();
-                    break;
-
-                case Tokens.INCREMENT:
-                    model.incrementCellValue();
-                    break;
-
-                case Tokens.DECREMENT:
-                    model.decrementCellValue();
-                    break;
-
-                case Tokens.INPUT:
+            switch(sourceCode[codeIndex]) {
+                case Tokens.INPUT :
                     model.setCellValue(view.inputData());
                     break;
 
-                case Tokens.OUTPUT:
+                case Tokens.OUTPUT :
                     view.outputData(model.getCellValue());
                     break;
 
-                case Tokens.L_BRACKET:
+                case Tokens.FORWARD :
+                    model.incArrayIndex();
+                    break;
+
+                case Tokens.BACKWARD :
+                    model.decArrayIndex();
+                    break;
+
+                case Tokens.INCREMENT :
+                    model.incCellValue();
+                    break;
+
+                case Tokens.DECREMENT :
+                    model.decCellValue();
+                    break;
+
+                case Tokens.L_BRACKET :
                     if (model.getCellValue() == 0)
                         codeIndex = getNewIndex(codeIndex, true);
                     break;
 
-                case Tokens.R_BRACKET:
+                case Tokens.R_BRACKET :
                     if (model.getCellValue() != 0)
                         codeIndex = getNewIndex(codeIndex, false);
                     break;
 
                 default:
             }
-
-            if(isTrace)
-            {
-                if("+-<>,.[]".contains(Character.toString(codeArray[codeIndex])))
-                    view.traceOperation(model.getCellIndex(), codeArray[codeIndex], model.getCellValue());
-            }
         }
     }
 
-    private int getNewIndex(int codeIndex, boolean leftBracket) {
+    private int getNewIndex(int codeIndex, boolean isLeftBracket) {
         int bracketsCounter = 0;
 
-        if(leftBracket) {
+        if (isLeftBracket) {
             codeIndex++;
 
-            while(codeArray[codeIndex] != Tokens.R_BRACKET || bracketsCounter > 0) {
-                if(codeArray[codeIndex] == Tokens.L_BRACKET)
+            while(sourceCode[codeIndex] != Tokens.R_BRACKET || bracketsCounter > 0) {
+                if(sourceCode[codeIndex] == Tokens.L_BRACKET)
                     bracketsCounter++;
-                else if(codeArray[codeIndex] == Tokens.R_BRACKET)
+                else if(sourceCode[codeIndex] == Tokens.R_BRACKET)
                     bracketsCounter--;
 
                 codeIndex++;
@@ -91,10 +92,10 @@ class Controller
         } else {
             codeIndex--;
 
-            while (codeArray[codeIndex] != Tokens.L_BRACKET || bracketsCounter > 0) {
-                if (codeArray[codeIndex] == Tokens.R_BRACKET)
+            while (sourceCode[codeIndex] != Tokens.L_BRACKET || bracketsCounter > 0) {
+                if (sourceCode[codeIndex] == Tokens.R_BRACKET)
                     bracketsCounter++;
-                else if (codeArray[codeIndex] == Tokens.L_BRACKET)
+                else if (sourceCode[codeIndex] == Tokens.L_BRACKET)
                     bracketsCounter--;
 
                 codeIndex--;
@@ -106,19 +107,25 @@ class Controller
         return codeIndex;
     }
 
-    private class Tokens {
-        private static final char INPUT     = ',';
-        private static final char OUTPUT    = '.';
-        private static final char FORWARD   = '>';
-        private static final char BACKWARD  = '<';
-        private static final char INCREMENT = '+';
-        private static final char DECREMENT = '-';
-        private static final char R_BRACKET = ']';
-        private static final char L_BRACKET = '[';
-    }
+    private char[] getSourceCode(String fileName) throws URISyntaxException, IOException {
+        Path path = Paths.get(new File(fileName).getPath());
 
-    private View view;
-    private Model model;
-    private boolean isTrace;
-    private char[] codeArray;
+        if (Controller.class.getResource("./../../" + fileName) != null)
+            path = Paths.get(Controller.class.getResource("./../../" + fileName).toURI());
+
+        if (path == null)
+            throw new FileNotFoundException("This file doesn't exist");
+
+        try(InputStream in = new FileInputStream(path.toString());
+            BufferedReader reader = new BufferedReader(new InputStreamReader(in))) {
+
+            StringBuilder builder = new StringBuilder();
+            String line;
+
+            while((line = reader.readLine()) != null)
+                builder.append(line);
+
+            return builder.toString().toCharArray();
+        }
+    }
 }

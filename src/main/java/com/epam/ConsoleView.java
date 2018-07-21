@@ -1,12 +1,16 @@
 package com.epam;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 
 public class ConsoleView implements View {
+    private BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+
     @Override
     public char inputData() throws IOException {
-        System.out.println("\nEnter your value :");
-        return (char) System.in.read();
+        System.out.println("Enter value:");
+        return (char) reader.read();
     }
 
     @Override
@@ -15,8 +19,8 @@ public class ConsoleView implements View {
     }
 
     @Override
-    public void traceOperation(int cellIndex, char operation, char cellValue) {
-        System.out.printf("\n[%d cell] :: current operation '%c' :: value in cell '%d' ",
-                          cellIndex + 1, operation, (int) cellValue);
+    public void traceCommand(int cellIndex, char operation, char cellValue) {
+        System.out.printf("\n|| CELL : '%d' || OPERATION : '%c' || VALUE : '%d' ||",
+                cellIndex, operation, (int) cellValue);
     }
 }
