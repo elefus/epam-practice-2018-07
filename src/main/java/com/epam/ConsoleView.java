@@ -1,11 +1,10 @@
 package com.epam;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
 public class ConsoleView implements View {
-    private BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+    private InputStreamReader reader = new InputStreamReader(System.in);
 
     @Override
     public char inputData() throws IOException {
@@ -19,8 +18,8 @@ public class ConsoleView implements View {
     }
 
     @Override
-    public void traceCommand(int cellIndex, char operation, char cellValue) {
+    public void traceCommand(int cellIndex, char command, char cellValue) {
         System.out.printf("\n|| CELL : '%d' || OPERATION : '%c' || VALUE : '%d' ||",
-                cellIndex, operation, (int) cellValue);
+                cellIndex, command, (int) cellValue);
     }
 }

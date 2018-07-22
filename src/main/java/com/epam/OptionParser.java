@@ -1,41 +1,49 @@
 package com.epam;
 
 import org.apache.commons.cli.*;
-import java.io.IOException;
-import java.net.URISyntaxException;
 
-class OptionParser {
+import java.io.IOException;
+
+public class OptionParser {
     private Options options = createOptions();
 
-    void parse(String[] args) {
-        try {
-            CommandLineParser parser = new DefaultParser();
-            CommandLine line = parser.parse(options, args);
+    public void parse(String...args) throws ParseException, IOException {
+        CommandLineParser parser = new DefaultParser();
+        CommandLine line = parser.parse(options, args);
 
-            int maxArraySize = line.hasOption("s") ? Integer.parseInt(line.getOptionValue("s")) : 30000;
+        if (line.hasOption("h")) {
+            getHelp();
+        } else {
+            if (!line.hasOption("f"))
+                throw new MissingOptionException("Missing option : -f");
 
-            new Controller(line.getOptionValue("f"), new Model(maxArraySize), new ConsoleView(), line.hasOption("t")).process();
-        } catch (NumberFormatException | IOException | URISyntaxException e) {
-            e.printStackTrace();
-        } catch (MissingArgumentException e) {
-            System.out.println(e.getMessage());
-        } catch (ParseException e) {
-            e.printStackTrace();
+            int size = line.hasOption("s") ? Integer.parseInt(line.getOptionValue("s")) : 30000;
+
+            new Controller(line.getOptionValue("f"), new Model(size), new ConsoleView(), line.hasOption("t")).process();
         }
     }
 
     private Options createOptions() {
         Option  file = new Option("f","file", true, "Input file to read data from");
-        Option  size = new Option("s","size", true, "Size of array of cells in program");
-        Option trace = new Option("t","trace",false,"Tracing of commands in file");
+        Option  help = new Option("h","help", false,"Get help about actual options");
+        Option  size = new Option("s","size", true, "Dimension of array of cells");
+        Option swing = new Option("S","swing",false,"Graphic display of the program ");
+        Option trace = new Option("t","trace",false,"Tracing of commands in the file");
 
         size.setRequired(false);
         trace.setRequired(false);
 
         Options options = new Options();
+        options.addOption(help);
         options.addOption(file);
         options.addOption(size);
         options.addOption(trace);
+        options.addOption(swing);
         return options;
+    }
+
+    private void getHelp() {
+        HelpFormatter formatter = new HelpFormatter();
+        formatter.printHelp("interpreter", options);
     }
 }

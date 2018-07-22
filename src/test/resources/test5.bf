@@ -1,11 +1,7 @@
 // x = x * y
 
-// Enter and print input values :
-,.           enter 'x' value to cell #2 and print
->,.          enter 'y' value to cell #3 and print
-
 // Clear temp cells #4 for multiplication; #5 for 'y' value :
->>[-]
+>>>[-]
 >[-]
 
 // Multiplication :
@@ -35,6 +31,3 @@
   <<<+
   >>>-
 ]
-
-// Print 'x' and 'y' values :
-<<<<.>.

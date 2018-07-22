@@ -1,50 +1,46 @@
 package com.epam;
 
 public class Model {
-    private int arrayIndex;
-    private int maxArraySize;
-    private char[] arrayOfCells;
+    private int cellIndex = 0;
+    private char[] cellsArray;
+    private final int maxArraySize;
     private final int maxCellSize = 256;
 
-    Model(int maxArraySize) throws IllegalArgumentException {
-        if ((this.maxArraySize = maxArraySize) < 1)
+    public Model(int size) throws IllegalArgumentException {
+        if ( (maxArraySize = size) < 1 )
             throw new IllegalArgumentException("Size of array must be more than 0");
-        arrayOfCells = new char[maxArraySize];
+        cellsArray = new char[maxArraySize];
     }
 
-    void incArrayIndex() {
-        if (++arrayIndex == maxArraySize)
-            arrayIndex = 0;
+    public void incrementCellIndex() {
+        cellIndex = cellIndex == maxArraySize - 1 ? 0: ++cellIndex;
     }
 
-    void decArrayIndex() {
-        if (--arrayIndex < 0)
-            arrayIndex = maxArraySize - 1;
+    public void decrementCellIndex() {
+        cellIndex = cellIndex == 0 ? maxArraySize - 1: --cellIndex;
     }
 
-    int getArrayIndex() {
-        return arrayIndex;
+    public void incrementCellValue() {
+        cellsArray[cellIndex] = cellsArray[cellIndex] + 1 == maxCellSize ? 0 : ++cellsArray[cellIndex];
     }
 
-    void incCellValue() {
-        if (++arrayOfCells[arrayIndex] == maxCellSize)
-            arrayOfCells[arrayIndex] = 0;
+    public void decrementCellValue() {
+        cellsArray[cellIndex] = cellsArray[cellIndex] - 1 < 0 ? maxCellSize - 1 : --cellsArray[cellIndex];
     }
 
-    void decCellValue() {
-        if (--arrayOfCells[arrayIndex] < 0)
-            arrayOfCells[arrayIndex] = maxCellSize - 1;
+    public int getCellIndex() {
+        return cellIndex;
     }
 
-    char getCellValue() {
-        return arrayOfCells[arrayIndex];
+    public char getCellValue() {
+        return cellsArray[cellIndex];
     }
 
-    void setCellValue(char cellValue) {
-        arrayOfCells[arrayIndex] = cellValue;
+    public void setCellValue(char cellValue) {
+        cellsArray[cellIndex] = cellValue;
     }
 
-    public char[] getArrayOfCells() {
-        return arrayOfCells;
+    public char[] getCellsArray() {
+        return cellsArray;
     }
 }

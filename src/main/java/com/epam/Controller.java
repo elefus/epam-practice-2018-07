@@ -1,15 +1,18 @@
 package com.epam;
 
-import java.io.*;
-import java.net.URISyntaxException;
+import java.io.File;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-class Controller {
-    private View view;
-    private Model model;
-    private boolean isTrace;
-    private char[] sourceCode;
+import java.io.IOException;
+import java.io.FileNotFoundException;
+
+public class Controller {
+    private final View view;
+    private final Model model;
+    private final boolean isTrace;
+    private final char[] sourceCode;
 
     private class Tokens {
         static final char INPUT = ',';
@@ -22,18 +25,18 @@ class Controller {
         static final char R_BRACKET = ']';
     }
 
-    Controller(String fileName, Model model, View view, boolean isTrace) throws URISyntaxException, IOException {
+    public Controller(String fileName, Model model, View view, boolean isTrace) throws IOException {
         this.view = view;
         this.model = model;
         this.isTrace = isTrace;
-        this.sourceCode = getSourceCode(fileName);
+        sourceCode = getSourceCode(fileName);
     }
 
-    void process() throws IOException {
+    public void process() throws IOException {
         for (int codeIndex = 0; codeIndex < sourceCode.length; codeIndex++) {
             if (isTrace)
                 if (",.><+-[]".contains(Character.toString(sourceCode[codeIndex])))
-                    view.traceCommand(model.getArrayIndex(), sourceCode[codeIndex], model.getCellValue());
+                    view.traceCommand(model.getCellIndex(), sourceCode[codeIndex], model.getCellValue());
 
             switch(sourceCode[codeIndex]) {
                 case Tokens.INPUT :
@@ -45,19 +48,19 @@ class Controller {
                     break;
 
                 case Tokens.FORWARD :
-                    model.incArrayIndex();
+                    model.incrementCellIndex();
                     break;
 
                 case Tokens.BACKWARD :
-                    model.decArrayIndex();
+                    model.decrementCellIndex();
                     break;
 
                 case Tokens.INCREMENT :
-                    model.incCellValue();
+                    model.incrementCellValue();
                     break;
 
                 case Tokens.DECREMENT :
-                    model.decCellValue();
+                    model.decrementCellValue();
                     break;
 
                 case Tokens.L_BRACKET :
@@ -107,25 +110,17 @@ class Controller {
         return codeIndex;
     }
 
-    private char[] getSourceCode(String fileName) throws URISyntaxException, IOException {
+    private static char[] getSourceCode(String fileName) throws IOException {
         Path path = Paths.get(new File(fileName).getPath());
 
-        if (Controller.class.getResource("./../../" + fileName) != null)
-            path = Paths.get(Controller.class.getResource("./../../" + fileName).toURI());
-
-        if (path == null)
+        if (Controller.class.getResource("./../../" + fileName) != null) {
+            path = Paths.get(Controller.class.getResource("./../../" + fileName).getPath());
+        } else if (Files.notExists(path)) {
             throw new FileNotFoundException("This file doesn't exist");
-
-        try(InputStream in = new FileInputStream(path.toString());
-            BufferedReader reader = new BufferedReader(new InputStreamReader(in))) {
-
-            StringBuilder builder = new StringBuilder();
-            String line;
-
-            while((line = reader.readLine()) != null)
-                builder.append(line);
-
-            return builder.toString().toCharArray();
         }
+
+        StringBuilder builder = new StringBuilder();
+        Files.readAllLines(path).forEach(builder::append);
+        return builder.toString().toCharArray();
     }
 }
