@@ -1,4 +1,4 @@
-package stackMachine;
+package machine;
 
 import java.rmi.UnexpectedException;
 import java.util.HashMap;
@@ -7,9 +7,18 @@ import java.util.Stack;
 
 public class Machine {
 
-    public static final int MAX_INT = 1048575;
+    public static final int MAX_INT = 2 >> 20 - 1;
     private static final int MAX_NUM_OF_SYMBOLS_IN_STRING = 2000;
-    private static int codeProcessing(String code) {
+    public static String currentCommand;
+
+    public static void main(String[] args) {
+
+        String code = "3 4 -";
+
+        System.out.println(codeProcessing(code));
+    }
+
+    public static int codeProcessing(String code) {
 
         if (code.length() > MAX_NUM_OF_SYMBOLS_IN_STRING) {
             return -1;
@@ -32,31 +41,13 @@ public class Machine {
         commandMap.put("+", new Plus());
         commandMap.put("-", new Minus());
 
-        boolean numeric;
-
         for (int i = 0; i < numOfCommands; i++) {
-            numeric = true;
-
+            currentCommand = instruction[i];
+            Command command = commandMap.getOrDefault(currentCommand, new Push());
             try {
-                Integer.parseInt(instruction[i]);
-            } catch (Exception NotNumeric) {
-                numeric = false;
-            }
-
-            if (numeric) {
-                Command command = new Push(instruction[i]);
-                try {
-                    command.execute(stack);
-                } catch (UnexpectedException e) {
-                    return -1;
-                }
-            } else {
-                Command command = commandMap.get(instruction[i]);
-                try {
-                    command.execute(stack);
-                } catch (UnexpectedException e) {
-                    return -1;
-                }
+                command.execute(stack);
+            } catch (UnexpectedException e) {
+                return -1;
             }
         }
 
@@ -64,11 +55,5 @@ public class Machine {
             return -1;
         }
         return stack.pop();
-    }
-
-    public static void main(String[] args) {
-        String code = "3 4-";
-
-        System.out.println(codeProcessing(code));
     }
 }

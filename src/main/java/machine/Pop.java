@@ -1,4 +1,4 @@
-package stackMachine;
+package machine;
 
 import java.rmi.UnexpectedException;
 import java.util.Stack;
