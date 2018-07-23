@@ -5,7 +5,7 @@ import java.io.InputStreamReader;
 
 public class TerminalView implements View {
 
-  private InputStreamReader console = new InputStreamReader(System.in);
+  private final InputStreamReader console = new InputStreamReader(System.in);
 
   @Override
   public char requestInput() throws IOException {
