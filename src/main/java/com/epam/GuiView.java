@@ -14,7 +14,6 @@ public class GuiView extends JFrame implements View{
     private JPanel mainPanel;
     private JTextArea cellsTextArea;
     private JButton runButton;
-    private JButton stepButton;
     private JButton stopButton;
     private JPanel Buttons;
     private JTextArea codeTextArea;
