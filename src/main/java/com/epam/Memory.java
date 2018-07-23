@@ -1,5 +1,7 @@
 package com.epam;
 
+import java.security.InvalidParameterException;
+
 public class Memory {
 
   private char[] mem;
@@ -7,7 +9,10 @@ public class Memory {
   private final int size;
 
   public Memory(int size) {
-    this.size = size < 1 ? 30000 : size;
+  if(size<1){
+    throw new InvalidParameterException("Size cannot be less than 1");
+  }
+    this.size = size;
     mem = new char[size];
   }
 

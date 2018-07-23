@@ -58,6 +58,7 @@
                 <properties>
                   <background color="-12829636"/>
                   <caretColor color="-2697514"/>
+                  <font swing-font="Button.font"/>
                   <foreground color="-2697514"/>
                   <rows value="19"/>
                 </properties>
@@ -763,6 +764,8 @@
                   <background color="-2697514"/>
                   <foreground color="-15053893"/>
                   <maximum value="300"/>
+                  <minimum value="10"/>
+                  <minorTickSpacing value="1"/>
                   <paintLabels value="true"/>
                   <paintTicks value="true"/>
                   <snapToTicks value="true"/>
@@ -782,7 +785,7 @@
               </component>
               <component id="e15fa" class="javax.swing.JButton" binding="runBtn">
                 <constraints>
-                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="1" anchor="1" fill="0" indent="0" use-parent-layout="false"/>
+                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="1" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
                 </constraints>
                 <properties>
                   <background color="-12829636"/>
@@ -792,7 +795,7 @@
               </component>
               <component id="322aa" class="javax.swing.JButton" binding="stepButton" default-binding="true">
                 <constraints>
-                  <grid row="0" column="1" row-span="1" col-span="2" vsize-policy="0" hsize-policy="1" anchor="9" fill="0" indent="0" use-parent-layout="false"/>
+                  <grid row="0" column="1" row-span="1" col-span="2" vsize-policy="0" hsize-policy="1" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                 </constraints>
                 <properties>
                   <background color="-12829636"/>
