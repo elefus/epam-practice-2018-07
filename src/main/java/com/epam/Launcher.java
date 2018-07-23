@@ -35,7 +35,7 @@ class Launcher{
 				System.out.println(control.getFileCode(commandLine.getOptionValue("o")));
 			} else
 				if(commandLine.hasOption("i")) {
-					control.interpreter(control.getFileCode(commandLine.getOptionValue("i")));
+					control.interpreter(control.getFileCode(commandLine.getOptionValue("i")),false);
 			}
 		} catch (ParseException ex) {
 			ex.printStackTrace();

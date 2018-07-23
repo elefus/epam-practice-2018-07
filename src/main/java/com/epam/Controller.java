@@ -27,7 +27,7 @@ class Controller{
         return code.toString();
     }
 
-    void interpreter(String code) throws IOException {
+    void interpreter(String code, boolean type) throws IOException {
         int index = 0;
         int count = 0;
         for(int i = 0; i < code.length(); i++)
@@ -66,7 +66,7 @@ class Controller{
                     break;
 
                 case ',':
-                        model.date[index] = view.readCell();
+                    model.date[index] = view.readCell();
                     break;
 
                 case '.':
