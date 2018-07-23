@@ -1,6 +1,6 @@
 package com.epam.compiler;
 
-public class Token implements Cloneable {
+public class Token {
 
   enum Type {
     CHANGE_VAL,
