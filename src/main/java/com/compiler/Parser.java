@@ -9,11 +9,14 @@ import static jdk.internal.org.objectweb.asm.Opcodes.NEW;
 import static jdk.internal.org.objectweb.asm.Opcodes.NEWARRAY;
 import static jdk.internal.org.objectweb.asm.Opcodes.PUTSTATIC;
 import static jdk.internal.org.objectweb.asm.Opcodes.RETURN;
-import static jdk.internal.org.objectweb.asm.Opcodes.SIPUSH;
 import static jdk.internal.org.objectweb.asm.Opcodes.T_INT;
-import static org.objectweb.asm.Opcodes.BIPUSH;
-import static org.objectweb.asm.Opcodes.ICONST_0;
 
+import com.compiler.commands.Brackets;
+import com.compiler.commands.ChangeData;
+import com.compiler.commands.ChangeIdx;
+import com.compiler.commands.Command;
+import com.compiler.commands.Print;
+import com.compiler.commands.Read;
 import com.epam.Control;
 import java.io.FileNotFoundException;
 import java.util.HashMap;
@@ -28,20 +31,10 @@ import jdk.internal.org.objectweb.asm.tree.VarInsnNode;
 
 public class Parser {
 
-  public static void pushRightType(int number, InsnList list) {
-    if (number >= 0 && number < 6) {
-      list.add(new InsnNode(ICONST_0 + number));
-    } else if (number > -129 && number < 128) {
-      list.add(new VarInsnNode(BIPUSH, number));
-    } else {
-      list.add(new VarInsnNode(SIPUSH, number));
-    }
-  }
-
   public static MethodNode getMain(String path) {
-    Map<String, Commands> map = new HashMap<>();
-    map.put("+", new ChangeData());
-    map.put(">", new ChangeIdx());
+    Map<String, Command> map = new HashMap<>();
+    map.put("C", new ChangeData());
+    map.put("S", new ChangeIdx());
     map.put(".", new Print());
     map.put(",", new Read());
     map.put("G", new Brackets());
@@ -92,8 +85,8 @@ public class Parser {
       }
       int offset = number;
       number = currentCommand == '-' || currentCommand == '<' ? -number : number;
-      currentCommand = currentCommand == '-' ? '+' : currentCommand;
-      currentCommand = currentCommand == '<' ? '>' : currentCommand;
+      currentCommand = currentCommand == '-' || currentCommand == '+' ? 'C' : currentCommand; //Change
+      currentCommand = currentCommand == '<' || currentCommand == '>'? 'S' : currentCommand; //Shift
       String str = currentCommand + " " + number + " ";
       if (!(currentCommand == ']' || currentCommand == '[')) {
         code.replace(idx, idx + offset, str);

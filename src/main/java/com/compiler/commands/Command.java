@@ -1,7 +1,7 @@
-package com.compiler;
+package com.compiler.commands;
 
 import jdk.internal.org.objectweb.asm.tree.InsnList;
 
-public interface Commands {
+public interface Command {
   InsnList execute(String val);
 }

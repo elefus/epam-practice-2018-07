@@ -1,10 +1,11 @@
-package com.compiler;
+package com.compiler.commands;
 
 
 import static jdk.internal.org.objectweb.asm.Opcodes.IALOAD;
 import static jdk.internal.org.objectweb.asm.Opcodes.IFEQ;
 import static jdk.internal.org.objectweb.asm.Opcodes.IFNE;
 
+import com.compiler.Compiler;
 import java.util.HashMap;
 import java.util.Map;
 import jdk.internal.org.objectweb.asm.Opcodes;
@@ -14,7 +15,7 @@ import jdk.internal.org.objectweb.asm.tree.InsnNode;
 import jdk.internal.org.objectweb.asm.tree.JumpInsnNode;
 import jdk.internal.org.objectweb.asm.tree.LabelNode;
 
-public class Brackets implements Commands {
+public class Brackets implements Command {
   class Pairs{
     Pairs(LabelNode l1,LabelNode l2){
       firstBracket = l1;

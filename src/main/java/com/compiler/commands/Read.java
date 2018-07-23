@@ -1,10 +1,11 @@
-package com.compiler;
+package com.compiler.commands;
 
+import com.compiler.Compiler;
 import jdk.internal.org.objectweb.asm.tree.InsnList;
 import jdk.internal.org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.Opcodes;
 
-public class Read implements Commands {
+public class Read implements Command {
 
   @Override
   public InsnList execute(String val) {

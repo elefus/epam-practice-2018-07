@@ -21,6 +21,9 @@ import static jdk.internal.org.objectweb.asm.Opcodes.IREM;
 import static jdk.internal.org.objectweb.asm.Opcodes.ISUB;
 import static jdk.internal.org.objectweb.asm.Opcodes.PUTSTATIC;
 import static jdk.internal.org.objectweb.asm.Opcodes.RETURN;
+import static jdk.internal.org.objectweb.asm.Opcodes.SIPUSH;
+import static org.objectweb.asm.Opcodes.BIPUSH;
+import static org.objectweb.asm.Opcodes.ICONST_0;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -42,7 +45,16 @@ public class Compiler {
   public static String className;
 
   public static void main(String[] args) {
-    compile("Compiler","test8.bf","c:\\Java\\");
+    compile("Compiler","test8.bf",".");
+  }
+  public static void pushRightType(int number, InsnList list) {
+    if (number >= 0 && number < 6) {
+      list.add(new InsnNode(ICONST_0 + number));
+    } else if (number > -129 && number < 128) {
+      list.add(new VarInsnNode(BIPUSH, number));
+    } else {
+      list.add(new VarInsnNode(SIPUSH, number));
+    }
   }
 
   public static void compile(String name, String pathToCompile, String pathToWrite) {
