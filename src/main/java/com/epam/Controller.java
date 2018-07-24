@@ -1,94 +1,161 @@
 package com.epam;
 
+import java.awt.*;
 import java.io.*;
-import java.util.Arrays;
 
-public class Controller extends Model {
-    private static boolean graphInterface = false;
-    private static boolean isTrace = false;
-    private static String fileName = "";
-    private static char[] program = new char[0];
-    private static BufferedReader fileReader = null;
-    private static BufferedReader input = null;
-    private static BufferedWriter output = null;
-    private static InputStreamReader inStream = new InputStreamReader(System.in);
-    private static OutputStreamWriter outStream = new OutputStreamWriter(System.out);
+public class Controller {
+    private String fileName;
+    private char[] program;
+    private int cmdPointer;
+    private BufferedReader fileReader;
+    private BufferedReader inStream;
+    private BufferedWriter outStream;
+    private View view;
+    private Model model;
 
-    public static void setGraphInterface(boolean value) {
-        graphInterface = value;
+    private static class Command {
+        private final static char SHIFT_RIGHT = '>';
+        private final static char SHIFT_LEFT = '<';
+        private final static char PLUS = '+';
+        private final static char MINUS = '-';
+        private final static char OUTPUT = '.';
+        private final static char INPUT = ',';
+        private final static char BRACKET_LEFT = '[';
+        private final static char BRACKET_RIGHT = ']';
     }
 
-    public static boolean getGraphInterface () {
-        return graphInterface;
+    public Controller(String fName) {
+        fileName = fName;
+        program = new char[0];
+        cmdPointer = 0;
+        fileReader = null;
+        inStream = new BufferedReader((new InputStreamReader(System.in)));
+        outStream = new BufferedWriter((new OutputStreamWriter(System.out)));
+        view = new ConsoleView();
+        model = new Model();
     }
 
-    public static void setIsTrace(boolean value) {
-        isTrace = value;
+    public void setFileName(String value) {
+        fileName = value;
     }
 
-    public static boolean getIsTrace () {
-        return isTrace;
+    public void setInStream(InputStream in) {
+        inStream = new BufferedReader(new InputStreamReader(in));
     }
 
-    public static void setMemLength(int value) {
-        if (value < 1) {
-            throw new IllegalArgumentException("Memory length must be a natural number!");
-        } else {
-            memLength = value;
-            mem = new char[memLength];
-        }
+    public void setOutStream(OutputStream out) {
+        outStream = new BufferedWriter(new OutputStreamWriter(out));
     }
 
-    public static int getMemLength () {
-        return memLength;
+    public BufferedReader getInStream() {
+        return inStream;
     }
 
-    public static void setFileName(String value) {
-        if (!value.endsWith(".bf")) {
-            throw new IllegalArgumentException("The file must have a extension of .bf!");
-        } else {
-            fileName = value;
-        }
+    public BufferedWriter getOutStream() {
+        return outStream;
     }
 
-    public static String getFileName(String value) {
-        return fileName;
+    public void setView(View value) {
+        view = value;
     }
 
-    public static void setInStream(InputStreamReader value) {
-        inStream = value;
+    public View getView() {
+        return view;
     }
 
-    public  static void setOutStream(OutputStreamWriter value) {
-        outStream = value;
+    public Model getModel() {
+        return model;
     }
 
-    public static char[] readMemory() {
-        return mem;
-    }
-
-    public static void interpret() {
-
-        try (InputStream in = Controller.class.getResourceAsStream("./../../" + fileName);
-             BufferedReader br = new BufferedReader (inStream);
-             BufferedWriter bw = new BufferedWriter(outStream)) {
+    public void prepare() {
+        try (InputStream in = Controller.class.getResourceAsStream("./../../" + fileName)) {
             fileReader = new BufferedReader(new InputStreamReader(in));
-            input = br;
-            output = bw;
 
             StringBuilder stringBuilder = new StringBuilder();
             String line = "";
             while ((line = fileReader.readLine()) != null) {
                 stringBuilder.append(line);
             }
-            programClean(stringBuilder.toString().toCharArray());
-            CommandProccess();
+            cleanProgram(stringBuilder.toString().toCharArray());
         } catch (IOException e) {
             e.printStackTrace();
         }
+        view.start(this);
     }
 
-    private static void programClean(char[] chars) {
+    public void interpret () {
+        int bracketStack = 0;
+        for (; cmdPointer < program.length; cmdPointer++) {
+            switch (program[cmdPointer]) {
+
+                case Command.SHIFT_RIGHT: {
+                    if (model.getMemPointer() + 1 >= model.getMemLength()) {
+                        throw new IndexOutOfBoundsException("Out of memory!");
+                    } else {
+                        model.incMemPointer();
+                    }
+                    break;
+                }
+
+                case Command.SHIFT_LEFT: {
+                    if (model.getMemPointer() - 1 < 0) {
+                        throw new IndexOutOfBoundsException("Out of memory!");
+                    } else {
+                        model.decMemPointer();
+                    }
+                    break;
+                }
+
+                case Command.PLUS: {
+                    if (model.getMemCell() + 1 > 255) {
+                        model.setMemCell(0);
+                    } else {
+                        model.setMemCell(model.getMemCell() + 1);
+                    }
+                    break;
+                }
+
+                case Command.MINUS: {
+                    if (model.getMemCell() - 1 < 0) {
+                        model.setMemCell(255);
+                    } else {
+                        model.setMemCell(model.getMemCell() - 1);
+                    }
+                    break;
+                }
+
+                case Command.OUTPUT: {
+                    try {
+                        outStream.write(model.getMemCell());
+                        outStream.flush();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    break;
+                }
+
+                case Command.INPUT: {
+                    try {
+                        model.setMemCell(inStream.read());
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    break;
+                }
+
+                case Command.BRACKET_LEFT: {
+                    bracketStack = cycleLeft(bracketStack);
+                    break;
+                }
+                case Command.BRACKET_RIGHT:
+                    bracketStack = cycleRight(bracketStack);
+                    break;
+                default:
+            }
+        }
+    }
+
+    private void cleanProgram(char[] chars) {
         char[] temp = new char[chars.length];
         int pos = 0;
         for (int i = 0; i < chars.length; ++i) {
@@ -132,93 +199,34 @@ public class Controller extends Model {
         System.arraycopy(temp, 0, program, 0, pos);
     }
 
-    private static void CommandProccess () throws IOException {
-        if (isTrace) {
-            System.out.println("PROGRAM");
-            for (int i = 0; i < program.length; ++i) {
-                System.out.print(program[i]);
-            }
-            System.out.println();
-        }
-
-        int bracketStack = 0;
-        for(; cmd_pointer < program.length; ++cmd_pointer) {
-            switch (program[cmd_pointer]) {
-                case Command.SHIFT_RIGHT: {
-                    if (mem_pointer + 1 >= memLength) {
-                        throw new IndexOutOfBoundsException("Out of memory!");
-                    }else
-                    mem_pointer++;
-                    break;
+    private int cycleLeft(int bracketStack) {
+        if (model.getMemCell() == 0) {
+            cmdPointer++;
+            while (bracketStack > 0 || program[cmdPointer] != Command.BRACKET_RIGHT) {
+                if (program[cmdPointer] == Command.BRACKET_LEFT) {
+                    ++bracketStack;
+                } else if (program[cmdPointer] == Command.BRACKET_RIGHT) {
+                    --bracketStack;
                 }
-                case Command.SHIFT_LEFT: {
-                    if (mem_pointer - 1 < 0) {
-                        throw new IndexOutOfBoundsException("Out of memory!");
-                    }
-                    else
-                    mem_pointer--;
-                    break;
-                }
-                case Command.PLUS: {
-                    if (++mem[mem_pointer] > 255) {
-                        mem[mem_pointer] = 0;
-                    }
-                    break;
-                }
-                case Command.MINUS: {
-                    if (--mem[mem_pointer] < 0) {
-                        mem[mem_pointer] = 255;
-                    }
-                    break;
-                }
-                case Command.OUTPUT: {
-                    output.write(((int)mem[mem_pointer]) + " ");
-                    output.flush();
-                    break;
-                }
-                case Command.INPUT: {
-                    mem[mem_pointer] = (char) input.read();
-                    break;
-                }
-                case Command.BRACKET_LEFT: {
-                    if (mem[mem_pointer] == 0) {
-                        ++cmd_pointer;
-                        while (bracketStack > 0 || program[cmd_pointer] != Command.BRACKET_RIGHT) {
-                            if (program[cmd_pointer] == Command.BRACKET_LEFT) {
-                                ++bracketStack;
-                            } else if (program[cmd_pointer] == Command.BRACKET_RIGHT) {
-                                --bracketStack;
-                            }
-                            ++cmd_pointer;
-                        }
-                    }
-                    break;
-                }
-                case Command.BRACKET_RIGHT:
-                    if (mem[mem_pointer] != 0) {
-                        --cmd_pointer;
-                        while (bracketStack > 0 || program[cmd_pointer] != Command.BRACKET_LEFT) {
-                            if (program[cmd_pointer] == Command.BRACKET_RIGHT) {
-                                ++bracketStack;
-                            } else if (program[cmd_pointer] == Command.BRACKET_LEFT) {
-                                --bracketStack;
-                            }
-                            --cmd_pointer;
-                        }
-                        --cmd_pointer;
-                    }
-                    break;
-                default:
-            }
-            if (isTrace) {
-                trace();
+                cmdPointer++;
             }
         }
+        return bracketStack;
     }
 
-    private static void trace() throws IOException {
-        output.write("\nMemory pointer -> [" + mem_pointer + "] = " + (int)mem[mem_pointer]
-                        + ", command pointer -> [" + cmd_pointer + "] = \'" + program[cmd_pointer] + "\'\n");
-        output.flush();
+    private int cycleRight(int bracketStack) {
+        if (model.getMemCell() != 0) {
+            cmdPointer--;
+            while (bracketStack > 0 || program[cmdPointer] != Command.BRACKET_LEFT) {
+                if (program[cmdPointer] == Command.BRACKET_RIGHT) {
+                    ++bracketStack;
+                } else if (program[cmdPointer] == Command.BRACKET_LEFT) {
+                    --bracketStack;
+                }
+                cmdPointer--;
+            }
+            cmdPointer--;
+        }
+        return bracketStack;
     }
 }
