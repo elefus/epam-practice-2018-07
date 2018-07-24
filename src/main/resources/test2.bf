@@ -1,8 +1,8 @@
 // x = y
 
 // Enter and print input values :
-,.            enter 'x' value to cell #1 and print
->,.           enter 'x' value to cell #2 and print
+,            enter 'x' value to cell #1 and print
+>,           enter 'x' value to cell #2 and print
 
 // Clear cells (cell #1 and temp cell):
 <[-]         clear cell #1 (x)
@@ -20,6 +20,3 @@
   <+         increase cell #2 (y)
   >-         decrease temp cell
 ]            check if the temp cell is 0
-
-// Print 'x' and 'y' values :
-<<.>.

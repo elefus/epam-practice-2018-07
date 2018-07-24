@@ -1,19 +1,55 @@
 package com.epam;
 
 public class Model {
-    protected static int memLength = 30000;
-    protected static char[] mem = new char[memLength];
-    protected static int mem_pointer = 0;
-    protected static int cmd_pointer = 0;
+    private int memLength;
+    private char[] mem;
+    private int memPointer;
 
-    protected static class Command {
-        protected final static char SHIFT_RIGHT = '>';
-        protected final static char SHIFT_LEFT = '<';
-        protected final static char PLUS = '+';
-        protected final static char MINUS = '-';
-        protected final static char OUTPUT = '.';
-        protected final static char INPUT = ',';
-        protected final static char BRACKET_LEFT = '[';
-        protected final static char BRACKET_RIGHT = ']';
+    public Model() {
+        memLength = 30000;
+        mem = new char[memLength];
+        memPointer = 0;
+    }
+
+    public Model(int pMemLength) {
+        memLength = pMemLength;
+        mem = new char[memLength];
+        memPointer = 0;
+    }
+
+    public void setMemLength(int value) {
+        memLength = value;
+    }
+
+    public int getMemLength() {
+        return memLength;
+    }
+
+    public char[] getMem() {
+        return mem;
+    }
+
+    public char getMemCell() {
+        return mem[memPointer];
+    }
+
+    public void setMemCell(int c) {
+        mem[memPointer] = (char)c;
+    }
+
+    public int getMemPointer() {
+        return memPointer;
+    }
+
+    public void incMemPointer() {
+        memPointer++;
+    }
+
+    public void decMemPointer() {
+        memPointer--;
+    }
+
+    public void setMemPointer(int value) {
+        memPointer = value;
     }
 }
