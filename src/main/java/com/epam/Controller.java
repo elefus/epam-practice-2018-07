@@ -66,7 +66,10 @@ class Controller{
                     break;
 
                 case ',':
-                    model.date[index] = view.readCell();
+                    if (type)
+                        model.date[index] = simpleGUI.setCess();
+                    else
+                      model.date[index] = view.readCell();
                     break;
 
                 case '.':

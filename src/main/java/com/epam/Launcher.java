@@ -10,6 +10,7 @@ class Launcher{
 	public static void main(String[] args) throws IOException {
 		Options options = new Options();
 		options.addOption("h", false, "help");
+		options.addOption("g", false, "running the GUI");
 		options.addOption("o", true, "output source code");
 		options.addOption("s", true, "set the size for cells");
 		options.addOption("i", true, "set the full path to the file");
@@ -23,6 +24,11 @@ class Launcher{
 
 			if (commandLine.hasOption("s")){
 				size = parseInt(commandLine.getOptionValue("s"));
+			}
+
+			if (commandLine.hasOption("g")){
+				new simpleGUI();
+				return;
 			}
 
 			Controller control = new Controller(new Model(size),new View());
