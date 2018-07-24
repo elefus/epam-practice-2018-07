@@ -11,6 +11,7 @@ import static jdk.internal.org.objectweb.asm.Opcodes.PUTSTATIC;
 import static jdk.internal.org.objectweb.asm.Opcodes.RETURN;
 import static jdk.internal.org.objectweb.asm.Opcodes.T_INT;
 
+import com.compiler.commands.Assign;
 import com.compiler.commands.Brackets;
 import com.compiler.commands.ChangeData;
 import com.compiler.commands.ChangeIdx;
@@ -34,10 +35,11 @@ public class Parser {
   public static MethodNode getMain(String path) {
     Map<String, Command> map = new HashMap<>();
     map.put("D", new ChangeData());
-    map.put("S", new ChangeIdx());
+    map.put("M", new ChangeIdx());
     map.put(".", new Print());
     map.put(",", new Read());
     map.put("G", new Brackets());
+    map.put("A", new Assign());
     MethodNode main = new MethodNode(ACC_PUBLIC + ACC_STATIC, "main", "([Ljava/lang/String;)V",
         null, null);
     InsnList bytecode = main.instructions;
@@ -47,7 +49,8 @@ public class Parser {
     bytecode.add(new MethodInsnNode(INVOKESPECIAL, "java/io/InputStreamReader", "<init>",
         "(Ljava/io/InputStream;)V", false));
     bytecode
-        .add(new FieldInsnNode(PUTSTATIC, Compiler.className, "reader", "Ljava/io/InputStreamReader;"));
+        .add(new FieldInsnNode(PUTSTATIC, Compiler.className, "reader",
+            "Ljava/io/InputStreamReader;"));
     bytecode.add(new FieldInsnNode(GETSTATIC, Compiler.className, "size", "I"));
     bytecode.add(new VarInsnNode(NEWARRAY, T_INT));
     bytecode.add(new FieldInsnNode(PUTSTATIC, Compiler.className, "array", "[I"));
@@ -86,7 +89,7 @@ public class Parser {
       int offset = number;
       number = currentCommand == '-' || currentCommand == '<' ? -number : number;
       currentCommand = currentCommand == '-' || currentCommand == '+' ? 'D' : currentCommand;
-      currentCommand = currentCommand == '<' || currentCommand == '>'? 'S' : currentCommand;
+      currentCommand = currentCommand == '<' || currentCommand == '>' ? 'M' : currentCommand;
       String str = currentCommand + " " + number + " ";
       if (!(currentCommand == ']' || currentCommand == '[')) {
         code.replace(idx, idx + offset, str);
@@ -100,13 +103,68 @@ public class Parser {
       if (code.charAt(idx) == ']' || code.charAt(idx) == '[') {
         int number = Control.getPair(code.toString(), idx);
         number = number - idx;
-        code.replace(idx + number, idx + number + 1, "G " + -number + " ");
-        code.replace(idx, idx + 1, "G " + number + " ");
+        code.replace(idx + number, idx + number + 1, "G -1 ");
+        code.replace(idx, idx + 1, "G 1 ");
 
       }
       idx++;
     }
+    String[] split;
+    boolean changed = true;
+    StringBuilder newStr = new StringBuilder();
+    while (changed) {
+      changed = false;
+      split = code.toString().split(" ");
+      for (int i = 0; i < split.length; i += 2) {
+
+        if (!(i + 2 >= split.length) && split[i].equals(split[i + 2])) {
+          int number = Integer.parseInt(split[i + 1]) + Integer.parseInt(split[i + 3]);
+          if (number != 0) {
+            newStr.append(split[i]).append(" ");
+            newStr.append(number).append(" ");
+          }
+          changed = true;
+          i = i + 2;
+        } else {
+          newStr.append(split[i]).append(" ");
+          newStr.append(split[i + 1]).append(" ");
+        }
+
+      }
+      code.delete(0, code.length());
+      code.append(newStr);
+      newStr.delete(0, newStr.length());
+
+    }
+    while (code.indexOf("G 1 D -1 G -1") != -1) {
+      code.replace(code.indexOf("G 1 D -1 G -1"),
+          code.indexOf("G 1 D -1 G -1") + "G 1 D -1 G -1".length(), "A 0");
+    }
+    while (code.indexOf("G 1 D 1 G -1") != -1) {
+      code.replace(code.indexOf("G 1 D 1 G -1"),
+          code.indexOf("G 1 D 1 G -1") + "G 1 D 1 G -1".length(), "A 0");
+    }
+    split = code.toString().split(" ");
+    idx = 0;
+    while (idx != split.length) {
+      if (idx + 2 < split.length && split[idx].equals("A") && split[idx + 2].equals("D")) {
+        newStr.append(split[idx] + " " + split[idx + 3] + " ");
+        idx += 2;
+      } else {
+        newStr.append(split[idx] + " " + split[idx + 1] + " ");
+      }
+      idx += 2;
+    }
+    code = newStr;
 
     return String.valueOf(code);
+  }
+
+  public static void main(String[] args) {
+    try {
+      System.out.println(parse(Control.getCodeFromFile("test8.bf")));
+    } catch (FileNotFoundException e) {
+      e.printStackTrace();
+    }
   }
 }
