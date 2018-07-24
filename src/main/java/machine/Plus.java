@@ -1,9 +1,9 @@
-package stackMachine;
+package machine;
 
 import java.rmi.UnexpectedException;
 import java.util.Stack;
 
-public class Minus implements Command {
+public class Plus implements Command {
 
     @Override
     public Stack<Integer> execute(Stack<Integer> stack) throws UnexpectedException {
@@ -12,8 +12,8 @@ public class Minus implements Command {
         }
         int temp1 = stack.pop();
         int temp2 = stack.pop();
-        int temp3 = temp1 - temp2;
-        if (temp3 < 0) {
+        int temp3 = temp1 + temp2;
+        if (temp3 > Machine.MAX_INT) {
             throw new UnexpectedException("-1");
         }
         stack.push(temp3);

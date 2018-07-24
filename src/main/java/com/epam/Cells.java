@@ -23,11 +23,15 @@ public class Cells {
         return currentCell;
     }
 
-    public void add() {
-        cells[currentCell]++;
-        if (cells[currentCell] == cellSize + 1) {
-            cells[currentCell] = 0;
+    public void restart() {
+        currentCell = 0;
+        for (int i = 0; i < numOfCells; i++) {
+            this.cells[i] = 0;
         }
+    }
+
+    public void add() {
+        cells[currentCell] = (cells[currentCell] + 1) % cellSize;
     }
 
     public void sub() {
@@ -39,7 +43,7 @@ public class Cells {
 
     public void shiftRight() {
         currentCell++;
-        if (currentCell == numOfCells + 1) {
+        if (currentCell == numOfCells) {
             currentCell = 0;
         }
     }
@@ -47,7 +51,7 @@ public class Cells {
     public void shiftLeft() {
         currentCell--;
         if (currentCell == -1) {
-            currentCell = numOfCells;
+            currentCell = numOfCells - 1;
         }
     }
 

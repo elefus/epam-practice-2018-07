@@ -1,5 +1,6 @@
 package com.epam;
 
+import com.epam.commands.*;
 import org.apache.commons.cli.*;
 
 import java.io.FileNotFoundException;
@@ -7,6 +8,8 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Map;
 
 import static java.util.stream.Collectors.joining;
 
@@ -15,92 +18,10 @@ import static java.util.stream.Collectors.joining;
 public class Controller {
     private static int numOfCells = 256;
     private static boolean trace;
-    private static int delay;
-
-    private static String getCode(String file) throws IOException, URISyntaxException {
-        String code;
-
-        if (Controller.class.getResource("./../../" + file) == null) {
-            throw new FileNotFoundException("File not found");
-        }
-        code = Files.lines(Paths.get(Controller.class.getResource("./../../" + file).toURI()))
-                .collect(joining());
-        return code;
-    }
-
-    private static void interpret(String code, Cells cells, View view) throws IOException {
-        int openedBrackets;
-
-        class comand{
-
-        }
-
-        for (int i = 0; i < code.length(); i++) {
-            openedBrackets = 1;
-            switch (code.charAt(i)) {
-                case '+':
-                    cells.add();
-                    break;
-
-                case '-':
-                    cells.sub();
-                    break;
-
-                case '>':
-                    cells.shiftRight();
-                    break;
-
-                case '<':
-                    cells.shiftLeft();
-                    break;
-
-                case '.':
-                    view.printSymbol(cells.getCells()[cells.getCurrentCell()]);
-                    break;
-
-                case ',':
-                    int symbol = view.readSymbol();
-                    cells.input((char) symbol);
-                    break;
-
-                case '[':
-                    if (cells.getCells()[cells.getCurrentCell()] == 0) {
-                        while (openedBrackets != 0 || code.charAt(i) != ']') {
-                            i++;
-                            if (code.charAt(i) == '[') {
-                                openedBrackets++;
-                            }
-                            if (code.charAt(i) == ']') {
-                                openedBrackets--;
-                            }
-                        }
-                    }
-                    break;
-
-                case ']':
-                    if (cells.getCells()[cells.getCurrentCell()] != 0) {
-                        while (openedBrackets != 0 || code.charAt(i) != '[') {
-                            i--;
-                            if (code.charAt(i) == ']') {
-                                openedBrackets++;
-                            }
-                            if (code.charAt(i) == '[') {
-                                openedBrackets--;
-                            }
-                        }
-                    }
-                    break;
-                default:
-                    break;
-            }
-            if (trace) {
-                String commands = "<>+-.,";
-                if (commands.contains(Character.toString(code.charAt(i)))) {
-                    view.print(cells.getCells(), cells.getCurrentCell(), delay);
-                }
-            }
-        }
-    }
+    public static boolean stop;
+    public static int delay;
+    public static int instructionNumber;
+    public static int openedBrackets;
 
     public static void main(String[] args) throws IOException, URISyntaxException, ParseException {
 
@@ -111,6 +32,8 @@ public class Controller {
         options.addOption("s", "size", true, "Number of cells");
         options.addOption("h", "help", false, "Help");
         options.addOption("t", "trace", true, "Tracing in milliseconds");
+        options.addOption("g", "gui", false, "GUI");
+
         CommandLine line = parser.parse(options, args);
 
         if (line.hasOption("h")) {
@@ -121,8 +44,8 @@ public class Controller {
             formatter.printHelp(cmdLineSyntax, header, options, footer);
             return;
         }
-
-        if (!line.hasOption("f")) {
+        boolean gui = line.hasOption("g");
+        if (!line.hasOption("f")&&!gui) {
             throw new MissingOptionException("Missing required option -f ");
         }
         String filename = line.getOptionValue("f");
@@ -136,10 +59,59 @@ public class Controller {
             delay = Integer.parseInt(line.getOptionValue("t"));
         }
 
-        Cells cells = new Cells(numOfCells);
-        View view = new View();
 
-        String code = getCode(filename);
-        interpret(code, cells, view);
+
+        Cells cells = new Cells(numOfCells);
+        if (!gui) {
+            TerminalView view = new TerminalView();
+            String code = getCode(filename);
+            interpret(code, cells, view);
+        } else {
+            GuiView guiView = new GuiView();
+            guiView.initListeners(cells);
+        }
+    }
+
+    public static void restart(Cells cells) {
+        cells.restart();
+    }
+
+    public static String getCode(String file) throws IOException, URISyntaxException {
+        String code;
+
+        if (Controller.class.getResource("./../../" + file) == null) {
+            throw new FileNotFoundException("File not found");
+        }
+        code = Files.lines(Paths.get(Controller.class.getResource("./../../" + file).toURI()))
+                .collect(joining(System.lineSeparator()));
+        return code;
+    }
+
+    public static void interpret(String code, Cells cells, View view) {
+
+        Map<Character, Command> commandMap = new HashMap<>();
+        commandMap.put('+', new Plus());
+        commandMap.put('-', new Minus());
+        commandMap.put('>', new ShiftRight());
+        commandMap.put('<', new ShiftLeft());
+        commandMap.put('.', new PrintSymbol());
+        commandMap.put(',', new ReadSymbol());
+        commandMap.put('[', new LeftBracket());
+        commandMap.put(']', new RightBracket());
+
+        for (instructionNumber = 0; instructionNumber < code.length(); instructionNumber++) {
+            if (stop) {
+                break;
+            }
+            openedBrackets = 1;
+            Command command = commandMap.getOrDefault(code.charAt(instructionNumber), new Skip());
+            command.execute(code, cells, view);
+            if (trace) {
+                String commands = "<>+-.,";
+                if (commands.contains(Character.toString(code.charAt(instructionNumber)))) {
+                    view.print(cells.getCells(), cells.getCurrentCell(), delay);
+                }
+            }
+        }
     }
 }
