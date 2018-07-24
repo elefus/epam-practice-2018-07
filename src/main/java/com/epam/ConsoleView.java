@@ -14,7 +14,7 @@ public class ConsoleView implements View {
 
     @Override
     public void outputData(char cellValue) {
-        System.out.print((int) cellValue + " ");
+        System.out.print((int) cellValue);
     }
 
     @Override

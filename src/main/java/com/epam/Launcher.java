@@ -8,7 +8,7 @@ public class Launcher {
         try {
             new OptionParser().parse(args);
         } catch (ParseException | IOException e) {
-            e.printStackTrace();
+            System.out.println(e.getMessage());
         }
     }
 }

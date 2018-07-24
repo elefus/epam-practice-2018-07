@@ -12,13 +12,23 @@ public class OptionParser {
         CommandLine line = parser.parse(options, args);
 
         if (line.hasOption("h")) {
-            getHelp();
+            if(args.length == 1)
+                getHelp();
+            else
+                throw new ParseException("Option -h must go without another options/arguments");
+        } else if (line.hasOption("S")) {
+            if(args.length == 1) {
+                new SwingView().initialize(null, 30000, false);
+            } else {
+                int size = line.hasOption("s") ? Integer.parseInt(line.getOptionValue("s")) : 30000;
+                String fileName = line.hasOption("f") ? line.getOptionValue("f") : null;
+                new SwingView().initialize(fileName, size, line.hasOption("t"));
+            }
         } else {
             if (!line.hasOption("f"))
                 throw new MissingOptionException("Missing option : -f");
 
             int size = line.hasOption("s") ? Integer.parseInt(line.getOptionValue("s")) : 30000;
-
             new Controller(line.getOptionValue("f"), new Model(size), new ConsoleView(), line.hasOption("t")).process();
         }
     }
@@ -44,6 +54,6 @@ public class OptionParser {
 
     private void getHelp() {
         HelpFormatter formatter = new HelpFormatter();
-        formatter.printHelp("interpreter", options);
+        formatter.printHelp("-h | [-S] -f <FILE_NAME> [-s SIZE] [-t]", options);
     }
 }
