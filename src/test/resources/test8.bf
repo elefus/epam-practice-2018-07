@@ -1,11 +1,7 @@
 // x = x ^ y
 
-// Enter and print input values :
-,.                 enter 'x' value to cell #2 and print
->,.                enter 'y' value to cell #3 and print
-
 // Clear cell #7 for future :
->>>>>[-]
+>>>>>>[-]
 
 // Copy 'x' value to temp cell #3 :
 <<<<<<[            until the cell #1 is not 0    
@@ -56,7 +52,3 @@
   <<<<<+           increase cell #2 (y)
   >>>>>-           decrease cell #7
 ]                  check if the cell #7 is 0
-
-// Print 'x' value :
-<<<<<<.>.
-

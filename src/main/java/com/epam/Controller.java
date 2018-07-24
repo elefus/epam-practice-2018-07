@@ -1,151 +1,126 @@
 package com.epam;
 
-import java.io.*;
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
-class Controller extends Model
-{
-  // IO
-  private static BufferedReader input;
-  private static BufferedWriter output;
+import java.io.IOException;
+import java.io.FileNotFoundException;
 
-  // Tracing
-  private boolean hasTrace = false;
-  public void setTrace() {
-    hasTrace = true;
-  }
+public class Controller {
+    private final View view;
+    private final Model model;
+    private final boolean isTrace;
+    private final char[] sourceCode;
 
-  public void initialize(String file_name, String new_size) {
-    try {
-      setArraySize(new_size);
-      initialize(file_name);
+    private class Tokens {
+        static final char INPUT = ',';
+        static final char OUTPUT = '.';
+        static final char FORWARD = '>';
+        static final char BACKWARD = '<';
+        static final char INCREMENT = '+';
+        static final char DECREMENT = '-';
+        static final char L_BRACKET = '[';
+        static final char R_BRACKET = ']';
     }
-    catch (NumberFormatException e) {
-      System.out.printf("Incorrect array size : '%s'%n", new_size);
+
+    public Controller(String fileName, Model model, View view, boolean isTrace) throws IOException {
+        this.view = view;
+        this.model = model;
+        this.isTrace = isTrace;
+        sourceCode = getSourceCode(fileName);
     }
-    catch (IndexOutOfBoundsException e) {
-      System.out.println(e.getMessage());
-    }
-  }
 
-  public void initialize(String file_name) {
+    public void process() throws IOException {
+        for (int codeIndex = 0; codeIndex < sourceCode.length; codeIndex++) {
+            if (isTrace)
+                if (",.><+-[]".contains(Character.toString(sourceCode[codeIndex])))
+                    view.traceCommand(model.getCellIndex(), sourceCode[codeIndex], model.getCellValue());
 
-    try (InputStreamReader inp = new InputStreamReader(Input.class.getResourceAsStream("./../../" + file_name));
-         BufferedReader buf = new BufferedReader(inp);
-         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-         BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(System.out)))
-    {
-      input = reader;
-      output = writer;
+            switch(sourceCode[codeIndex]) {
+                case Tokens.INPUT :
+                    model.setCellValue(view.inputData());
+                    break;
 
-      String new_line;
-      StringBuilder string = new StringBuilder();
+                case Tokens.OUTPUT :
+                    view.outputData(model.getCellValue());
+                    break;
 
-      while((new_line = buf.readLine()) != null)
-        string.append(new_line);
+                case Tokens.FORWARD :
+                    model.incrementCellIndex();
+                    break;
 
-      process_commands(string.toString().toCharArray());
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-  }
+                case Tokens.BACKWARD :
+                    model.decrementCellIndex();
+                    break;
 
-  private void process_commands(char[] code_array) throws IOException {
+                case Tokens.INCREMENT :
+                    model.incrementCellValue();
+                    break;
 
-    int bracket_counter = 0;
-    int current_pointer = 0;
+                case Tokens.DECREMENT :
+                    model.decrementCellValue();
+                    break;
 
-    for( ;current_pointer < code_array.length; current_pointer++)
-    {
-      switch (code_array[current_pointer])
-      {
-        case Tokens.FORWARD : {
-          try {
-            if (cell_pointer + 1 >= MAX_ARRAY_SIZE)
-              throw new IndexOutOfBoundsException("Pointer cell bigger than " + MAX_ARRAY_SIZE);
-            else
-              cell_pointer++;
-          } catch (IndexOutOfBoundsException e) {
-            e.getMessage();
-          }
+                case Tokens.L_BRACKET :
+                    if (model.getCellValue() == 0)
+                        codeIndex = getNewIndex(codeIndex, true);
+                    break;
 
-          break;
-        }
-        case Tokens.BACKWARD : {
-          try {
-            if (cell_pointer - 1 < 0)
-              throw new IndexOutOfBoundsException("Pointer cell less than " + MAX_ARRAY_SIZE);
-            else
-              cell_pointer--;
-          } catch (IndexOutOfBoundsException e) {
-            e.getMessage();
-          }
+                case Tokens.R_BRACKET :
+                    if (model.getCellValue() != 0)
+                        codeIndex = getNewIndex(codeIndex, false);
+                    break;
 
-          break;
-        }
-        case Tokens.PLUS : {
-          if ((int)array_of_cells[cell_pointer] + 1 > MAX_CELL_SIZE)
-            array_of_cells[cell_pointer] = (char) 0;
-          else
-            array_of_cells[cell_pointer]++;
-
-          break;
-        }
-        case Tokens.MINUS : {
-          if ((int)array_of_cells[cell_pointer] - 1 < 0) {
-            array_of_cells[cell_pointer] = (char) MAX_CELL_SIZE;
-          } else {
-            array_of_cells[cell_pointer]--;
-          }
-
-          break;
-        }
-        case Tokens.L_BRACKET : {
-          if ((int)array_of_cells[cell_pointer] == 0) {
-            current_pointer = current_pointer + 1;
-
-            while(code_array[current_pointer] != ']' || bracket_counter > 0)
-            {
-              if(code_array[current_pointer] == '[')
-                bracket_counter++;
-              else if(code_array[current_pointer] == ']')
-                bracket_counter--;
-
-              current_pointer++;
+                default:
             }
-          }
-
-          break;
         }
-        case Tokens.R_BRACKET : {
-          if ((int) array_of_cells[cell_pointer] != 0) {
-            current_pointer--;
+    }
 
-            while (code_array[current_pointer] != '[' || bracket_counter > 0) {
-              if (code_array[current_pointer] == ']')
-                bracket_counter++;
-              else if (code_array[current_pointer] == '[')
-                bracket_counter--;
+    private int getNewIndex(int codeIndex, boolean isLeftBracket) {
+        int bracketsCounter = 0;
 
-              current_pointer--;
+        if (isLeftBracket) {
+            codeIndex++;
+
+            while(sourceCode[codeIndex] != Tokens.R_BRACKET || bracketsCounter > 0) {
+                if(sourceCode[codeIndex] == Tokens.L_BRACKET)
+                    bracketsCounter++;
+                else if(sourceCode[codeIndex] == Tokens.R_BRACKET)
+                    bracketsCounter--;
+
+                codeIndex++;
+            }
+        } else {
+            codeIndex--;
+
+            while (sourceCode[codeIndex] != Tokens.L_BRACKET || bracketsCounter > 0) {
+                if (sourceCode[codeIndex] == Tokens.R_BRACKET)
+                    bracketsCounter++;
+                else if (sourceCode[codeIndex] == Tokens.L_BRACKET)
+                    bracketsCounter--;
+
+                codeIndex--;
             }
 
-            current_pointer--;
-          }
+            codeIndex--;
+        }
 
-          break;
-        }
-        case Tokens.INPUT : {
-          array_of_cells[cell_pointer] = (char)input.read();
-          break;
-        }
-        case Tokens.OUTPUT : {
-          if((int)array_of_cells[cell_pointer] == 0)
-            output.write('0');
-          else
-            output.write((int)array_of_cells[cell_pointer] + " ");
-          break;
-        }
-      }
+        return codeIndex;
     }
-  }
+
+    private static char[] getSourceCode(String fileName) throws IOException {
+        Path path = Paths.get(new File(fileName).getPath());
+
+        if (Controller.class.getResource("./../../" + fileName) != null) {
+            path = Paths.get(Controller.class.getResource("./../../" + fileName).getPath());
+        } else if (Files.notExists(path)) {
+            throw new FileNotFoundException("This file doesn't exist");
+        }
+
+        StringBuilder builder = new StringBuilder();
+        Files.readAllLines(path).forEach(builder::append);
+        return builder.toString().toCharArray();
+    }
 }

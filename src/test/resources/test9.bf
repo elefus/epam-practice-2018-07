@@ -1,11 +1,7 @@
 // swap(x;y)
 
-// Enter input value :
-,.           enter 'x' value to cell #1 and print
->,.          enter 'y' value to cell #2 and print
-
 // Clear temp cells (#3 and #4) :
->[-]
+>>[-]
 >[-]
 
 // Copy 'x' value into the cell #3:
@@ -31,6 +27,3 @@
   <<<+        increase cell #4
   >>>-        decrease cell #2
 ]            check if the cell #4 is 0
-
-// Print 'x' and 'y' values :
-<<<.>.
