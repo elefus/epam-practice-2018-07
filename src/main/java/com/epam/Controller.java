@@ -2,65 +2,82 @@ package com.epam;
 
 import java.io.*;
 
-public class Controller extends Model {
+class Controller{
 
-    public static String getFileCode(String name) {
+    private Model model;
+    private View view;
 
-        String code = "";
+    Controller(Model model, View view){
+        this.model = model;
+        this.view = view;
+    }
 
-        try (InputStream input = Controller.class.getResourceAsStream("./../../" + name);
-             BufferedReader reader = new BufferedReader(new InputStreamReader(input))){
-            String line = "";
+    String getFileCode(String name) {
+
+        StringBuilder code = new StringBuilder();
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(name))){
+            String line;
             while ((line = reader.readLine()) != null) {
-                code += line;
+                code.append(line);
             }
         } catch (IOException ex) {
             ex.printStackTrace();
         }
-        return code;
+        return code.toString();
     }
 
-    public static void interpreter(String code) throws IOException {
+    void interpreter(String code, boolean type) throws IOException {
         int index = 0;
         int count = 0;
         for(int i = 0; i < code.length(); i++)
             switch (code.charAt(i)){
+
                 case '>':
-                    if (index == 29999){
+                    if (index == (model.length - 1)){
                         index = 0;
                     }
                     else
                         index++;
                     break;
+
                 case '<':
                     if (index == 0){
-                        index = 29999;
+                        index = model.length - 1;
                     }
                     else
                         index--;
                     break;
+
                 case '+':
-                    if (date[index] == 255){
-                        date[index] = 0;
+                    if (model.date[index] == 255){
+                        model.date[index] = 0;
                     }
                     else
-                        date[index]++;
+                        model.date[index]++;
                     break;
+
                 case '-':
-                    if (date[index] == 0){
-                        date[index] = 255;
+                    if (model.date[index] == 0){
+                        model.date[index] = 255;
                     }
                     else
-                        date[index]--;
+                        model.date[index]--;
                     break;
+
                 case ',':
-                        date[index] = (char) new InputStreamReader(System.in).read();
+                    if (type)
+                        model.date[index] = simpleGUI.setCess();
+                    else
+                      model.date[index] = view.readCell();
                     break;
+
                 case '.':
-                    System.out.println(date[index]);
+                    view.writeCell(model.date[index]);
                     break;
+
                 case '[':
-                    if (date[index] == 0) {
+                    if (model.date[index] == 0) {
                         i++;
                         while (count > 0 || code.charAt(i) != ']') {
                             if (code.charAt(i) == '[') count++;
@@ -69,8 +86,9 @@ public class Controller extends Model {
                         }
                     }
                     break;
+
                 case ']':
-                    if (date[index] != 0) {
+                    if (model.date[index] != 0) {
                         i--;
                         while (count > 0 || code.charAt(i) != '[') {
                             if (code.charAt(i) == ']') count++;
