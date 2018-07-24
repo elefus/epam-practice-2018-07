@@ -9,8 +9,11 @@ public class Read implements Command {
 
   @Override
   public InsnList execute(String val) {
+    int num = Integer.parseInt(val);
     InsnList list = new InsnList();
-    list.add(new MethodInsnNode(Opcodes.INVOKESTATIC,Compiler.className,"read","()V",false));
+    for (int i = 0; i < num; i++) {
+      list.add(new MethodInsnNode(Opcodes.INVOKESTATIC, Compiler.className, "read", "()V", false));
+    }
     return list;
   }
 }

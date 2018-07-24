@@ -13,7 +13,6 @@ import static jdk.internal.org.objectweb.asm.Opcodes.IALOAD;
 import static jdk.internal.org.objectweb.asm.Opcodes.IASTORE;
 import static jdk.internal.org.objectweb.asm.Opcodes.IFGE;
 import static jdk.internal.org.objectweb.asm.Opcodes.IFNE;
-import static jdk.internal.org.objectweb.asm.Opcodes.IF_ICMPLT;
 import static jdk.internal.org.objectweb.asm.Opcodes.ILOAD;
 import static jdk.internal.org.objectweb.asm.Opcodes.INVOKESPECIAL;
 import static jdk.internal.org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
@@ -42,11 +41,13 @@ import jdk.internal.org.objectweb.asm.tree.MethodNode;
 import jdk.internal.org.objectweb.asm.tree.VarInsnNode;
 
 public class Compiler {
+
   public static String className;
 
   public static void main(String[] args) {
-    compile("Compiler","test8.bf",".");
+    compile("Compiler", "test8.bf", ".");
   }
+
   public static void pushRightType(int number, InsnList list) {
     if (number >= 0 && number < 6) {
       list.add(new InsnNode(ICONST_0 + number));
@@ -114,14 +115,15 @@ public class Compiler {
     myClass.accept(writer);
 
     byte[] bytes = writer.toByteArray();
-    try(FileOutputStream output  = new FileOutputStream(new File(pathToWrite+"\\"+className+".class"))){
+    try (FileOutputStream output = new FileOutputStream(
+        new File(pathToWrite + "\\" + className + ".class"))) {
       output.write(bytes);
     } catch (IOException e) {
       e.printStackTrace();
     }
   }
 
-  private static InsnList getIdxChanger(){
+  private static InsnList getIdxChanger() {
     InsnList list = new InsnList();
     list.add(new VarInsnNode(ILOAD, 1));
     LabelNode idxBackward = new LabelNode();
@@ -136,16 +138,9 @@ public class Compiler {
     list.add(new VarInsnNode(ILOAD, 0));
     list.add(new InsnNode(ISUB));
     list.add(idxIfs);
-    list.add(new FieldInsnNode(PUTSTATIC, className, "idx", "I"));
-    list.add(new FieldInsnNode(GETSTATIC, className, "idx", "I"));
-    list.add(new FieldInsnNode(GETSTATIC, className, "size", "I"));
-    LabelNode idxIf = new LabelNode();
-    list.add(new JumpInsnNode(IF_ICMPLT, idxIf));
-    list.add(new FieldInsnNode(GETSTATIC, className, "idx", "I"));
-    list.add(new FieldInsnNode(GETSTATIC, className, "size", "I"));
+    list.add(new FieldInsnNode(GETSTATIC, className, "maxData", "I"));
     list.add(new InsnNode(IREM));
     list.add(new FieldInsnNode(PUTSTATIC, className, "idx", "I"));
-    list.add(idxIf);
     LabelNode idxEnd = new LabelNode();
     list.add(new FieldInsnNode(GETSTATIC, className, "idx", "I"));
     list.add(new JumpInsnNode(IFGE, idxEnd));
@@ -157,39 +152,28 @@ public class Compiler {
     list.add(new InsnNode(RETURN));
     return list;
   }
-  private static InsnList getDataChanger(){
+
+  private static InsnList getDataChanger() {
     InsnList list = new InsnList();
-    list.add(new FieldInsnNode(GETSTATIC, className, "array", "[I"));
-    list.add(new FieldInsnNode(GETSTATIC, className, "idx", "I"));
-    list.add(new InsnNode(DUP2));
-    list.add(new VarInsnNode(ILOAD, 1));
+    list.add(new FieldInsnNode(GETSTATIC, className, "array", "[I")); // ref
+    list.add(new FieldInsnNode(GETSTATIC, className, "idx", "I"));    //ref , idx
+    list.add(new InsnNode(DUP2)); //ref,idx,ref,idx
+    list.add(new VarInsnNode(ILOAD, 1));// ref,idx,ref,idx,var1
     LabelNode dataBackward = new LabelNode();
     LabelNode dataIfs = new LabelNode();
-    list.add(new JumpInsnNode(IFNE, dataBackward));
-    list.add(new InsnNode(IALOAD));
-    list.add(new VarInsnNode(ILOAD, 0));
-    list.add(new InsnNode(IADD));
+    list.add(new JumpInsnNode(IFNE, dataBackward));//ref,idx,ref,idx
+    list.add(new InsnNode(IALOAD)); //ref , idx , val
+    list.add(new VarInsnNode(ILOAD, 0));// ref ,idx, val ,var0
+    list.add(new InsnNode(IADD));//ref,idx,val1
     list.add(new JumpInsnNode(GOTO, dataIfs));
     list.add(dataBackward);
     list.add(new InsnNode(IALOAD));
     list.add(new VarInsnNode(ILOAD, 0));
     list.add(new InsnNode(ISUB));
     list.add(dataIfs);
-    list.add(new InsnNode(IASTORE));
-    list.add(new FieldInsnNode(GETSTATIC, className, "array", "[I"));
-    list.add(new FieldInsnNode(GETSTATIC, className, "idx", "I"));
-    list.add(new InsnNode(IALOAD));
-    list.add(new FieldInsnNode(GETSTATIC, className, "maxData", "I"));
-    LabelNode dataIf = new LabelNode();
-    list.add(new JumpInsnNode(IF_ICMPLT, dataIf));
-    list.add(new FieldInsnNode(GETSTATIC, className, "array", "[I"));
-    list.add(new FieldInsnNode(GETSTATIC, className, "idx", "I"));
-    list.add(new InsnNode(DUP2));
-    list.add(new InsnNode(IALOAD));
-    list.add(new FieldInsnNode(GETSTATIC, className, "maxData", "I"));
+    list.add(new FieldInsnNode(GETSTATIC,className,"maxData","I"));
     list.add(new InsnNode(IREM));
     list.add(new InsnNode(IASTORE));
-    list.add(dataIf);
     LabelNode dataEnd = new LabelNode();
     list.add(new FieldInsnNode(GETSTATIC, className, "array", "[I"));
     list.add(new FieldInsnNode(GETSTATIC, className, "idx", "I"));
@@ -207,7 +191,8 @@ public class Compiler {
     return list;
 
   }
-  private static InsnList getPrinter(){
+
+  private static InsnList getPrinter() {
     InsnList list = new InsnList();
     list.add(new FieldInsnNode(GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;"));
     list.add(new FieldInsnNode(GETSTATIC, className, "array", "[I"));
@@ -218,7 +203,8 @@ public class Compiler {
     list.add(new InsnNode(RETURN));
     return list;
   }
-  private static InsnList getReader(){
+
+  private static InsnList getReader() {
     InsnList list = new InsnList();
     list.add(new FieldInsnNode(GETSTATIC, className, "array", "[I"));
     list.add(new FieldInsnNode(GETSTATIC, className, "idx", "I"));

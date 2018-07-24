@@ -33,7 +33,7 @@ public class Parser {
 
   public static MethodNode getMain(String path) {
     Map<String, Command> map = new HashMap<>();
-    map.put("C", new ChangeData());
+    map.put("D", new ChangeData());
     map.put("S", new ChangeIdx());
     map.put(".", new Print());
     map.put(",", new Read());
@@ -85,8 +85,8 @@ public class Parser {
       }
       int offset = number;
       number = currentCommand == '-' || currentCommand == '<' ? -number : number;
-      currentCommand = currentCommand == '-' || currentCommand == '+' ? 'C' : currentCommand; //Change
-      currentCommand = currentCommand == '<' || currentCommand == '>'? 'S' : currentCommand; //Shift
+      currentCommand = currentCommand == '-' || currentCommand == '+' ? 'D' : currentCommand;
+      currentCommand = currentCommand == '<' || currentCommand == '>'? 'S' : currentCommand;
       String str = currentCommand + " " + number + " ";
       if (!(currentCommand == ']' || currentCommand == '[')) {
         code.replace(idx, idx + offset, str);
