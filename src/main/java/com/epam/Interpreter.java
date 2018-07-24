@@ -1,15 +1,11 @@
 package com.epam;
 
-import java.util.Scanner;
-
 public class Interpreter {
     private Tape tape;
-    private Scanner scanner;
     private View view;
 
     public Interpreter(int tapeLength, View view) {
         tape = new Tape(tapeLength);
-        scanner = new Scanner(System.in);
         this.view = view;
     }
 
@@ -25,12 +21,30 @@ public class Interpreter {
 
         for (int i = 0; i < sourceCode.length(); i++) {
             switch (sourceCode.charAt(i)) {
-                case '>': tape.shiftRight(); break;
-                case '<': tape.shiftLeft(); break;
-                case '+': tape.increment(); break;
-                case '-': tape.decrement(); break;
-                case '.': view.print(tape.getValue()); break;
-                case ',': tape.setValue(view.read()); break;
+                case '>':
+                    tape.shiftRight();
+                    break;
+
+                case '<':
+                    tape.shiftLeft();
+                    break;
+
+                case '+':
+                    tape.increment();
+                    break;
+
+                case '-':
+                    tape.decrement();
+                    break;
+
+                case '.':
+                    view.print(tape.getValue());
+                    break;
+
+                case ',':
+                    tape.setValue(view.read());
+                    break;
+
                 case '[':
                     if (tape.getValue() == 0) {
                         i++;
@@ -44,6 +58,7 @@ public class Interpreter {
                         }
                     }
                     break;
+
                 case ']':
                     if (tape.getValue() != 0) {
                         i--;

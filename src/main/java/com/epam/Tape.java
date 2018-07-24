@@ -34,10 +34,18 @@ public class Tape {
 
     public void increment() {
         arr[pointer]++;
+
+        if (arr[pointer] == 256) {
+            arr[pointer] = 0;
+        }
     }
 
     public void decrement() {
         arr[pointer]--;
+
+        if (arr[pointer] == Character.MAX_VALUE) {
+            arr[pointer] = 255;
+        }
     }
 
     public char getValue() {
