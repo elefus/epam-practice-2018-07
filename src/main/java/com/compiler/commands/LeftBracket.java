@@ -9,10 +9,6 @@ public class LeftBracket implements Command {
 
     @Override
     public int optimize(String code, int currentCell) {
-        int numOfCommands = 0;
-        while (currentCell+numOfCommands < code.length() && code.charAt(currentCell+numOfCommands) == '[') {
-            numOfCommands++;
-        }
-        return numOfCommands;
+        return 1;
     }
 }

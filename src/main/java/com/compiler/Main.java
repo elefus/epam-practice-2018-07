@@ -8,7 +8,9 @@ import jdk.internal.org.objectweb.asm.tree.*;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static jdk.internal.org.objectweb.asm.Opcodes.*;
@@ -16,10 +18,11 @@ import static jdk.internal.org.objectweb.asm.Opcodes.*;
 public class Main {
 
     private static String name = "CompiledFile";
-    private final static int numOfCells = 1003;
+    public static final int numOfCells = 5;
     public static InsnList bytecode;
+    public static int maxValue = 255;
 
-    private static void pushNum(int num) {
+    public static void pushNum(int num) {
         int numOfAdds = -1;
         for (int i = 0; i < num / 100; i++) {
             bytecode.add(new VarInsnNode(BIPUSH,100));
@@ -55,7 +58,7 @@ public class Main {
         bytecode = main.instructions;
 
 //----------------------------------------------------------------------------------------------------------------------
-        String tempString = "+";
+        String tempString = ".<.<.<.<.<.<.<.<.<.";
 //----------------------------------------------------------------------------------------------------------------------
 
         //VAR1 = ARRAY
@@ -64,8 +67,11 @@ public class Main {
         bytecode.add(new VarInsnNode(ASTORE,1));
 
         //VAR 2 = CURRENT_CELL
-        pushNum(0);
+        pushNum(1);
+        pushNum(1);
+        bytecode.add(new InsnNode(ISUB));
         bytecode.add(new VarInsnNode(ISTORE,2));
+
 
         //COMMAND MAP
         Map<Character, Command> commandMap = new HashMap<>();
@@ -78,9 +84,10 @@ public class Main {
         commandMap.put('.', new Write());
         commandMap.put(',', new Read());
 
-        StringBuilder optimizedCode = new StringBuilder();
 
         //OPTIMIZING
+        List<Integer> commandAmount = new ArrayList<>();
+        StringBuilder optimizedCode = new StringBuilder();
         int codePointer = 0;
         while (codePointer < tempString.length()) {
             int numOfCommands = commandMap.getOrDefault(tempString.charAt(codePointer),new Skip()).
@@ -88,29 +95,26 @@ public class Main {
             if (numOfCommands == 0) {
                 codePointer++;
             } else {
+                commandAmount.add(numOfCommands);
                 optimizedCode.append(tempString.charAt(codePointer));
-                optimizedCode.append(numOfCommands);
                 codePointer += numOfCommands;
             }
         }
 
-
-        for(int i = 0; i < optimizedCode.length(); i++) {
-
-            commandMap.getOrDefault(optimizedCode.charAt(i), new Skip()).execute(i);
+        //CREATE INPUT STREAM
+        if (Read.used) {
+            bytecode.add(new TypeInsnNode(NEW, "java/io/InputStreamReader"));
+            bytecode.add(new InsnNode(DUP));
+            bytecode.add(new FieldInsnNode(GETSTATIC, "java/lang/System", "in", "Ljava/io/InputStream;"));
+            bytecode.add(new MethodInsnNode(INVOKESPECIAL, "java/io/InputStreamReader", "<init>",
+                    "(Ljava/io/InputStream;)V", false));
+            bytecode.add(new VarInsnNode(ASTORE,3));
         }
 
-
-        //VAR10 = ARRAY[6];
-        bytecode.add(new VarInsnNode(ALOAD,1));
-        pushNum(6);
-        bytecode.add(new InsnNode(IALOAD));
-        bytecode.add(new VarInsnNode(ISTORE,10));
-
-
-
-
-
+        //COMPILING
+        for(int i = 0; i < optimizedCode.length(); i++) {
+            commandMap.get(optimizedCode.charAt(i)).execute(commandAmount.get(i));
+        }
 
         //RETURN
         bytecode.add(new InsnNode(RETURN));
