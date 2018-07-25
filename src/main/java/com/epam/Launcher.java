@@ -1,5 +1,13 @@
 package com.epam;
 
+import com.epam.interpreter.GuiView;
+import com.epam.interpreter.View;
+import javafx.application.Application;
+import javafx.application.Platform;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.stage.Stage;
 import org.apache.commons.cli.*;
 
 import java.io.*;
@@ -23,11 +31,16 @@ class LaunchInfo {
     }
 }
 
-public class Launcher {
+public class Launcher extends Application {
     public static void main(String[] args) {
+        launch(args);
+    }
+
+    @Override
+    public void start(Stage primaryStage) throws Exception {
         LaunchInfo launchInfo;
         try {
-            launchInfo = parseArgs(args);
+            launchInfo = parseArgs(getParameters().getRaw().toArray(new String[0]));
         } catch (ParseException e) {
             System.out.println("Can't parse arguments");
             e.printStackTrace();
@@ -37,8 +50,11 @@ public class Launcher {
         if (launchInfo.needToCompile) {
             launchCompiler(launchInfo);
         } else {
-            launchInterpreter(launchInfo);
+            launchInterpreter(launchInfo, primaryStage);
         }
+
+        if (!launchInfo.guiEnabled)
+            Platform.exit();
     }
 
     private static void launchCompiler(LaunchInfo launchInfo) {
@@ -63,8 +79,27 @@ public class Launcher {
         compiler.launchProgram();
     }
 
-    private static void launchInterpreter(LaunchInfo launchInfo) {
-        Interpreter interpreter = new Interpreter(launchInfo.tapeLength, new ConsoleView());
+    private static void launchInterpreter(LaunchInfo launchInfo, Stage primaryStage) {
+
+        View view;
+        if (launchInfo.guiEnabled) {
+            try {
+                FXMLLoader loader = new FXMLLoader(Launcher.class.getResource("InterpreterWindowLayout.fxml"));
+                Parent load = loader.load();
+                view = loader.getController();
+                primaryStage.setTitle("Brainfuck interpreter");
+                primaryStage.setScene(new Scene(load));
+                primaryStage.show();
+            } catch (IOException e) {
+                System.out.println("Failed to load GUI. Interpreter will work with the console");
+                e.printStackTrace();
+                view = new ConsoleView();
+            }
+        } else {
+            view = new ConsoleView();
+        }
+
+        Interpreter interpreter = new Interpreter(launchInfo.tapeLength, view);
 
         for (String file : launchInfo.fileNames) {
             try {
