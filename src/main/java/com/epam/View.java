@@ -1,9 +1,17 @@
+
 package com.epam;
 
 import java.io.IOException;
+import java.io.InputStreamReader;
 
-public interface View {
-    char inputData() throws IOException;
-    void outputData(int value);
-    void traceCommand(int ptr, char operation, int value);
+class View {
+    private InputStreamReader in = new InputStreamReader(System.in);
+    void printData(char cell){
+        System.out.println(cell + " ");
+    }
+
+    char readData() throws IOException {
+        return (char) in.read();
+    }
+
 }
