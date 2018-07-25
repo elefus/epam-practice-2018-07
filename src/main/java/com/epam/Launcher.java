@@ -4,15 +4,22 @@ import org.apache.commons.cli.*;
 
 import java.io.*;
 
+import com.epam.compiler.Compiler;
+import com.epam.interpreter.Interpreter;
+import com.epam.interpreter.ConsoleView;
+
 class LaunchInfo {
     public final int tapeLength;
     public final String[] fileNames;
     public final Boolean needToCompile;
+    public final Boolean guiEnabled;
 
-    public LaunchInfo(int tapeLength, String[] fileNames, Boolean needToCompile) {
+    public LaunchInfo(int tapeLength, String[] fileNames, Boolean needToCompile,
+                      Boolean guiEnabled) {
         this.tapeLength = tapeLength;
         this.fileNames = fileNames;
         this.needToCompile = needToCompile;
+        this.guiEnabled = guiEnabled;
     }
 }
 
@@ -35,7 +42,7 @@ public class Launcher {
     }
 
     private static void launchCompiler(LaunchInfo launchInfo) {
-        Compiler compiler = new Compiler();
+        Compiler compiler = new Compiler(true);
 
         for (String file : launchInfo.fileNames) {
             try {
@@ -52,6 +59,8 @@ public class Launcher {
             System.out.println("Failed to write program.class");
             e.printStackTrace();
         }
+
+        compiler.launchProgram();
     }
 
     private static void launchInterpreter(LaunchInfo launchInfo) {
@@ -87,6 +96,9 @@ public class Launcher {
         Option needToCompileOption = new Option("c", "compile", false,
                 "Need to compile program");
 
+        Option guiEnabledOption = new Option("g", "gui", false,
+                "Enable graphical user interface");
+
         // interpreter.exe -s src1.bf src2.bf src3.bf ...
         Option sourcesOption = new Option("s", "sources", true,
                 "1-20 files with source code");
@@ -96,6 +108,7 @@ public class Launcher {
         Options options = new Options();
         options.addOption(tapeLengthOption);
         options.addOption(needToCompileOption);
+        options.addOption(guiEnabledOption);
         options.addOption(sourcesOption);
 
         CommandLineParser cmdLineParser = new DefaultParser();
@@ -114,13 +127,11 @@ public class Launcher {
             }
         }
 
-        Boolean needToCompile = cmdLine.hasOption("c");
-
         String[] fileNames = new String[0];
         if (cmdLine.hasOption("s")) {
             fileNames = cmdLine.getOptionValues("s");
         }
 
-        return new LaunchInfo(tapeLength, fileNames, needToCompile);
+        return new LaunchInfo(tapeLength, fileNames, cmdLine.hasOption("c"), cmdLine.hasOption("g"));
     }
 }

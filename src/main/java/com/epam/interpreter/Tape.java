@@ -1,4 +1,4 @@
-package com.epam;
+package com.epam.interpreter;
 
 public class Tape {
     private char[] arr;

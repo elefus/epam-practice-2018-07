@@ -1,31 +1,13 @@
 package com.epam;
 
+import com.epam.interpreter.Interpreter;
 import org.junit.jupiter.api.Test;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 public class InterpreterTest {
-
-    private String readAllLines(String fileName) throws IOException {
-
-        try (InputStream resourceStream = InterpreterTest.class.getResourceAsStream(fileName);
-             InputStreamReader reader = new InputStreamReader(resourceStream);
-             BufferedReader bufferedReader = new BufferedReader(reader)) {
-
-            StringBuilder builder = new StringBuilder();
-            while (bufferedReader.ready()) {
-                builder.append(bufferedReader.readLine());
-                builder.append(System.lineSeparator());
-            }
-
-            return builder.toString();
-        }
-    }
 
     private Interpreter initializeInterpreter(int first) {
         Interpreter interpreter = new Interpreter();
@@ -45,7 +27,7 @@ public class InterpreterTest {
     @Test
     void assignZeroTest() throws IOException {
         Interpreter interpreter = initializeInterpreter(56);
-        String code = readAllLines("3.bf");
+        String code = Common.readAllLines("3.bf");
 
         interpreter.interpret(code);
 
@@ -55,7 +37,7 @@ public class InterpreterTest {
     @Test
     void copyingTest() throws IOException {
         Interpreter interpreter = initializeInterpreter(23, 44);
-        String code = readAllLines("4.bf");
+        String code = Common.readAllLines("4.bf");
 
         interpreter.interpret(code);
 
@@ -67,7 +49,7 @@ public class InterpreterTest {
     @Test
     void additionTest() throws IOException {
         Interpreter interpreter = initializeInterpreter(10, 15);
-        String code = readAllLines("5.bf");
+        String code = Common.readAllLines("5.bf");
 
         interpreter.interpret(code);
 
@@ -79,7 +61,7 @@ public class InterpreterTest {
     @Test
     void subtractionTest() throws IOException {
         Interpreter interpreter = initializeInterpreter(12, 5);
-        String code = readAllLines("6.bf");
+        String code = Common.readAllLines("6.bf");
 
         interpreter.interpret(code);
 
@@ -91,7 +73,7 @@ public class InterpreterTest {
     @Test
     void multiplicationTest() throws IOException {
         Interpreter interpreter = initializeInterpreter(9, 5);
-        String code = readAllLines("7.bf");
+        String code = Common.readAllLines("7.bf");
 
         interpreter.interpret(code);
 
@@ -103,7 +85,7 @@ public class InterpreterTest {
     @Test
     void squaringTest() throws IOException {
         Interpreter interpreter = initializeInterpreter(7);
-        String code = readAllLines("8.bf");
+        String code = Common.readAllLines("8.bf");
 
         interpreter.interpret(code);
 
@@ -113,7 +95,7 @@ public class InterpreterTest {
     @Test
     void divisionTest() throws IOException {
         Interpreter interpreter = initializeInterpreter(12, 4);
-        String code = readAllLines("9.bf");
+        String code = Common.readAllLines("9.bf");
 
         interpreter.interpret(code);
 
@@ -125,13 +107,13 @@ public class InterpreterTest {
     @Test
     void exponentiationTest() throws IOException {
         Interpreter interpreter = initializeInterpreter(2, 4);
-        String code = readAllLines("10.bf");
+        String code = Common.readAllLines("10.bf");
 
         interpreter.interpret(code);
 
         assertEquals(interpreter.getTape().getValue(), 16);
         interpreter.getTape().shiftRight();
-        // There is a bug in Brainfuck program.
+        // There is a bug in the Brainfuck program.
         // It loses the second argument (y)
         assertEquals(interpreter.getTape().getValue(), 0);
     }
@@ -139,7 +121,7 @@ public class InterpreterTest {
     @Test
     void swapTest() throws IOException {
         Interpreter interpreter = initializeInterpreter(64, 28);
-        String code = readAllLines("11.bf");
+        String code = Common.readAllLines("11.bf");
 
         interpreter.interpret(code);
 

@@ -1,4 +1,4 @@
-package com.epam;
+package com.epam.interpreter;
 
 public interface View {
     void print(char value);
