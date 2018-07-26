@@ -1,13 +1,9 @@
-package com.epam;
-
-import org.apache.commons.io.IOUtils;
+package com.epam.Interpreter;
 
 import javax.swing.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.*;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 
 public class WindowView extends JFrame implements View {
 
@@ -72,9 +68,10 @@ public class WindowView extends JFrame implements View {
     }
 
     public void printMem() {
+        outputArea.append("\n");
         for (int i = 0; i < memSize; i++) {
             controller.getModel().setMemPointer(i);
-            outputArea.append(controller.getModel().getMemCell() + " ");
+            outputArea.append((byte)controller.getModel().getMemCell() + " ");
         }
     }
 }

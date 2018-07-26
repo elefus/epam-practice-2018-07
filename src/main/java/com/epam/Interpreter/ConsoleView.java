@@ -1,4 +1,4 @@
-package com.epam;
+package com.epam.Interpreter;
 
 public class ConsoleView implements View {
 

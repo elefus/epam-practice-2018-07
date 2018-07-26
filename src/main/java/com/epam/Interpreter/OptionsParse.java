@@ -1,8 +1,7 @@
-package com.epam;
+package com.epam.Interpreter;
 
 import org.apache.commons.cli.*;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.io.input.ReaderInputStream;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;

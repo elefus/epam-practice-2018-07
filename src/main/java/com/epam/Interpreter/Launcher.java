@@ -1,9 +1,6 @@
-package com.epam;
+package com.epam.Interpreter;
 
 
-import org.apache.commons.io.IOUtils;
-
-import java.nio.charset.StandardCharsets;
 import java.util.Scanner;
 
 public class Launcher {
