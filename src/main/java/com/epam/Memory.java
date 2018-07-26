@@ -9,9 +9,9 @@ public class Memory {
   private final int size;
 
   public Memory(int size) {
-  if(size<1){
-    throw new InvalidParameterException("Size cannot be less than 1");
-  }
+    if (size < 1) {
+      throw new InvalidParameterException("Size cannot be less than 1");
+    }
     this.size = size;
     mem = new char[size];
   }

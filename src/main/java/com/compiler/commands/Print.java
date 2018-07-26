@@ -12,8 +12,8 @@ public class Print implements Command {
   public InsnList execute(String val) {
     int number = Integer.parseInt(val);
     InsnList list = new InsnList();
-    for(int i = 0;i<number;i++){
-      list.add(new MethodInsnNode(INVOKESTATIC,Compiler.className,"print","()V",false));
+    for (int i = 0; i < number; i++) {
+      list.add(new MethodInsnNode(INVOKESTATIC, Compiler.className, "print", "()V", false));
     }
     return list;
   }

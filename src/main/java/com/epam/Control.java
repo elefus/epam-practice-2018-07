@@ -83,13 +83,13 @@ public class Control {
           view.printData(memory.getDataAtCurrentCell());
           break;
         case '[':
-          int idx = getPair(code,instructionIdx);
+          int idx = getPair(code, instructionIdx);
           if (memory.getDataAtCurrentCell() == 0) {
             instructionIdx = idx;
           }
           break;
         case ']':
-          idx = getPair(code,instructionIdx);
+          idx = getPair(code, instructionIdx);
           if (memory.getDataAtCurrentCell() != 0) {
             instructionIdx = idx;
           }
@@ -145,7 +145,7 @@ public class Control {
     this.stop = stop;
   }
 
-  public static int getPair(String code,int currentIdx) throws IllegalStateException {
+  public static int getPair(String code, int currentIdx) throws IllegalStateException {
     int tIdx = currentIdx;
     boolean backwards = code.charAt(tIdx) == ']';
     int brackets = 1;

@@ -7,17 +7,14 @@ import static jdk.internal.org.objectweb.asm.Opcodes.ALOAD;
 import static jdk.internal.org.objectweb.asm.Opcodes.DUP2;
 import static jdk.internal.org.objectweb.asm.Opcodes.DUP2_X1;
 import static jdk.internal.org.objectweb.asm.Opcodes.GETSTATIC;
-import static jdk.internal.org.objectweb.asm.Opcodes.GOTO;
 import static jdk.internal.org.objectweb.asm.Opcodes.IADD;
 import static jdk.internal.org.objectweb.asm.Opcodes.IALOAD;
 import static jdk.internal.org.objectweb.asm.Opcodes.IASTORE;
 import static jdk.internal.org.objectweb.asm.Opcodes.IFGE;
-import static jdk.internal.org.objectweb.asm.Opcodes.IFNE;
 import static jdk.internal.org.objectweb.asm.Opcodes.ILOAD;
 import static jdk.internal.org.objectweb.asm.Opcodes.INVOKESPECIAL;
 import static jdk.internal.org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
 import static jdk.internal.org.objectweb.asm.Opcodes.IREM;
-import static jdk.internal.org.objectweb.asm.Opcodes.ISUB;
 import static jdk.internal.org.objectweb.asm.Opcodes.PUTSTATIC;
 import static jdk.internal.org.objectweb.asm.Opcodes.RETURN;
 import static jdk.internal.org.objectweb.asm.Opcodes.SIPUSH;
@@ -39,26 +36,59 @@ import jdk.internal.org.objectweb.asm.tree.LabelNode;
 import jdk.internal.org.objectweb.asm.tree.MethodInsnNode;
 import jdk.internal.org.objectweb.asm.tree.MethodNode;
 import jdk.internal.org.objectweb.asm.tree.VarInsnNode;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.MissingOptionException;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 
 public class Compiler {
 
   public static String className;
 
   public static void main(String[] args) {
-    compile("Compiler", "test8.bf", ".");
+    try {
+      CommandLine cl = parseOptions(args);
+      if (!cl.hasOption("f")) {
+        throw new MissingOptionException("missing required -f option");
+      }
+      String outputDirectory = ".";
+      if (cl.hasOption("o")) {
+        outputDirectory = cl.getOptionValue("o");
+      }
+      compile("CompiledFile", cl.getOptionValue("f"), outputDirectory);
+    } catch (ParseException e) {
+      e.printStackTrace();
+    }
+
+  }
+
+  public static CommandLine parseOptions(String[] args) throws ParseException {
+    CommandLineParser parser = new DefaultParser();
+    Options options = new Options();
+    options.addOption("f", "file", true, "File to compile");
+    options.addOption("o", "output", true, "Directory to output");
+    return parser.parse(options, args);
   }
 
   public static void pushRightType(int number, InsnList list) {
+    int maxShortInt = 2 << 15;
+    int maxByteInt = 2 << 7;
     if (number >= 0 && number < 6) {
       list.add(new InsnNode(ICONST_0 + number));
-    } else if (number > -129 && number < 128) {
+    } else if (number >= -maxByteInt && number < 0) {
+      list.add(new VarInsnNode(BIPUSH, number + maxByteInt));
+    } else if (number > 0 && number < maxByteInt - 1) {
       list.add(new VarInsnNode(BIPUSH, number));
-    } else {
+    } else if (number >= -maxShortInt && number < 0) {
+      list.add(new VarInsnNode(SIPUSH, number + maxShortInt));
+    } else if (number > 0 && number < maxShortInt - 1) {
       list.add(new VarInsnNode(SIPUSH, number));
     }
   }
 
-  public static void compile(String name, String pathToCompile, String pathToWrite) {
+  private static void compile(String name, String pathToCompile, String pathToWrite) {
     className = name;
     ClassNode myClass = new ClassNode();
     myClass.version = Opcodes.V1_8;
@@ -78,12 +108,12 @@ public class Compiler {
     bytecode.add(new MethodInsnNode(INVOKESPECIAL, myClass.superName, "<init>", "()V", false));
     bytecode.add(new InsnNode(RETURN));
 
-    MethodNode changeIdx = new MethodNode(ACC_PUBLIC + ACC_STATIC, "changeIdx", "(IZ)V", null,
+    MethodNode changeIdx = new MethodNode(ACC_PUBLIC + ACC_STATIC, "changeIdx", "(I)V", null,
         null);
     bytecode = changeIdx.instructions;
     bytecode.add(getIdxChanger());
 
-    MethodNode changeData = new MethodNode(ACC_PUBLIC + ACC_STATIC, "changeData", "(IZ)V", null,
+    MethodNode changeData = new MethodNode(ACC_PUBLIC + ACC_STATIC, "changeData", "(I)V", null,
         null);
     bytecode = changeData.instructions;
     bytecode.add(getDataChanger());
@@ -95,6 +125,10 @@ public class Compiler {
     MethodNode input = new MethodNode(ACC_PUBLIC + ACC_STATIC, "read", "()V", null, null);
     bytecode = input.instructions;
     bytecode.add(getReader());
+
+    MethodNode setter = new MethodNode(ACC_PUBLIC + ACC_STATIC, "set", "(I)V", null, null);
+    bytecode = setter.instructions;
+    bytecode.add(getSetter());
 
     MethodNode main = Parser.getMain(pathToCompile);
 
@@ -109,6 +143,7 @@ public class Compiler {
     myClass.methods.add(changeData);
     myClass.methods.add(input);
     myClass.methods.add(print);
+    myClass.methods.add(setter);
     myClass.methods.add(main);
 
     ClassWriter writer = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
@@ -125,18 +160,12 @@ public class Compiler {
 
   private static InsnList getIdxChanger() {
     InsnList list = new InsnList();
-    list.add(new VarInsnNode(ILOAD, 1));
-    LabelNode idxBackward = new LabelNode();
+
     LabelNode idxIfs = new LabelNode();
-    list.add(new JumpInsnNode(IFNE, idxBackward));
+
     list.add(new FieldInsnNode(GETSTATIC, className, "idx", "I"));
     list.add(new VarInsnNode(ILOAD, 0));
     list.add(new InsnNode(IADD));
-    list.add(new JumpInsnNode(GOTO, idxIfs));
-    list.add(idxBackward);
-    list.add(new FieldInsnNode(GETSTATIC, className, "idx", "I"));
-    list.add(new VarInsnNode(ILOAD, 0));
-    list.add(new InsnNode(ISUB));
     list.add(idxIfs);
     list.add(new FieldInsnNode(GETSTATIC, className, "maxData", "I"));
     list.add(new InsnNode(IREM));
@@ -158,20 +187,10 @@ public class Compiler {
     list.add(new FieldInsnNode(GETSTATIC, className, "array", "[I")); // ref
     list.add(new FieldInsnNode(GETSTATIC, className, "idx", "I"));    //ref , idx
     list.add(new InsnNode(DUP2)); //ref,idx,ref,idx
-    list.add(new VarInsnNode(ILOAD, 1));// ref,idx,ref,idx,var1
-    LabelNode dataBackward = new LabelNode();
-    LabelNode dataIfs = new LabelNode();
-    list.add(new JumpInsnNode(IFNE, dataBackward));//ref,idx,ref,idx
     list.add(new InsnNode(IALOAD)); //ref , idx , val
     list.add(new VarInsnNode(ILOAD, 0));// ref ,idx, val ,var0
     list.add(new InsnNode(IADD));//ref,idx,val1
-    list.add(new JumpInsnNode(GOTO, dataIfs));
-    list.add(dataBackward);
-    list.add(new InsnNode(IALOAD));
-    list.add(new VarInsnNode(ILOAD, 0));
-    list.add(new InsnNode(ISUB));
-    list.add(dataIfs);
-    list.add(new FieldInsnNode(GETSTATIC,className,"maxData","I"));
+    list.add(new FieldInsnNode(GETSTATIC, className, "maxData", "I"));
     list.add(new InsnNode(IREM));
     list.add(new InsnNode(IASTORE));
     LabelNode dataEnd = new LabelNode();
@@ -211,6 +230,16 @@ public class Compiler {
     list
         .add(new FieldInsnNode(GETSTATIC, className, "reader", "Ljava/io/InputStreamReader;"));
     list.add(new MethodInsnNode(INVOKEVIRTUAL, "java/io/InputStreamReader", "read", "()I", false));
+    list.add(new InsnNode(IASTORE));
+    list.add(new InsnNode(RETURN));
+    return list;
+  }
+
+  private static InsnList getSetter() {
+    InsnList list = new InsnList();
+    list.add(new FieldInsnNode(GETSTATIC, className, "array", "[I"));
+    list.add(new FieldInsnNode(GETSTATIC, className, "idx", "I"));
+    list.add(new VarInsnNode(ILOAD, 0));
     list.add(new InsnNode(IASTORE));
     list.add(new InsnNode(RETURN));
     return list;
