@@ -1,9 +1,10 @@
 package com.epam;
 
-import com.epam.interpreter.GuiView;
 import com.epam.interpreter.View;
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.concurrent.Service;
+import javafx.concurrent.Task;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -49,12 +50,10 @@ public class Launcher extends Application {
 
         if (launchInfo.needToCompile) {
             launchCompiler(launchInfo);
+            Platform.exit();
         } else {
             launchInterpreter(launchInfo, primaryStage);
         }
-
-        if (!launchInfo.guiEnabled)
-            Platform.exit();
     }
 
     private static void launchCompiler(LaunchInfo launchInfo) {
@@ -99,16 +98,33 @@ public class Launcher extends Application {
             view = new ConsoleView();
         }
 
-        Interpreter interpreter = new Interpreter(launchInfo.tapeLength, view);
+        final View viewFinal = view;
+        Service<Void> service = new Service<Void>() {
+            @Override
+            protected Task<Void> createTask() {
+                return new Task<Void>() {
+                    @Override
+                    protected Void call() {
+                        Interpreter interpreter = new Interpreter(launchInfo.tapeLength, viewFinal);
 
-        for (String file : launchInfo.fileNames) {
-            try {
-                interpreter.interpret(readAllLines(file));
-            } catch (IOException e) {
-                System.out.println("Failed to read " + file);
-                e.printStackTrace();
+                        for (String file : launchInfo.fileNames) {
+                            try {
+                                interpreter.interpret(readAllLines(file));
+                            } catch (IOException e) {
+                                System.out.println("Failed to read " + file);
+                                e.printStackTrace();
+                            }
+                        }
+
+                        if (!launchInfo.guiEnabled)
+                            Platform.exit();
+
+                        return null;
+                    }
+                };
             }
-        }
+        };
+        service.start();
     }
 
     public static String readAllLines(String fileName) throws IOException {
