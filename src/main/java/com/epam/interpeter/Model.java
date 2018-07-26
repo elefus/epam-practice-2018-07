@@ -1,4 +1,4 @@
-package com.epam;
+package com.epam.interpeter;
 
 public class Model {
     private int cellIndex = 0;

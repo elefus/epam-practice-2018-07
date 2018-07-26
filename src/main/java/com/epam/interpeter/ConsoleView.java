@@ -1,4 +1,4 @@
-package com.epam;
+package com.epam.interpeter;
 
 import java.io.IOException;
 import java.io.InputStreamReader;

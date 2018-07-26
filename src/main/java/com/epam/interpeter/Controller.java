@@ -1,4 +1,4 @@
-package com.epam;
+package com.epam.interpeter;
 
 import java.io.File;
 import java.nio.file.Files;

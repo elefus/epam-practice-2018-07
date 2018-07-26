@@ -1,4 +1,8 @@
-package com.epam;
+package com.epam.interpeter;
+
+import com.epam.interpeter.Controller;
+import com.epam.interpeter.Model;
+import com.epam.interpeter.View;
 
 import java.io.*;
 import java.awt.*;
@@ -191,11 +195,11 @@ public class SwingView extends JFrame implements View {
     }
 
     private void setIOElements() {
-        JLabel inpLbl = new JLabel("Input:");
+        JLabel inpLbl = new JLabel("INPUT:");
         inpLbl.setBounds(30, 150, 80, 20);
         panel.add(inpLbl);
 
-        // Text Input Area
+        // Text INPUT Area
         inputArea = new JTextArea();
         inputArea.setFont(new Font("Tahoma", Font.PLAIN, 12));
         inputArea.setBounds(30, 175, 40, 20);
@@ -214,11 +218,11 @@ public class SwingView extends JFrame implements View {
         btnEnter.setEnabled(false);
         panel.add(btnEnter);
 
-        JLabel outLbl = new JLabel("Output:");
+        JLabel outLbl = new JLabel("OUTPUT:");
         outLbl.setBounds(30, 210, 80, 20);
         panel.add(outLbl);
 
-        // Text Output Area
+        // Text OUTPUT Area
         outputArea = new TextArea();
         outputArea.setFont(new Font("Tahoma", Font.PLAIN, 12));
         outputArea.setBounds(30, 235, 340, 210);
