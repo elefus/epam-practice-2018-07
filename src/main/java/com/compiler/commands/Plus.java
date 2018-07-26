@@ -1,6 +1,6 @@
 package com.compiler.commands;
 
-import com.compiler.Main;
+import com.compiler.Compiler;
 import jdk.internal.org.objectweb.asm.tree.InsnNode;
 import jdk.internal.org.objectweb.asm.tree.JumpInsnNode;
 import jdk.internal.org.objectweb.asm.tree.LabelNode;
@@ -9,22 +9,28 @@ import jdk.internal.org.objectweb.asm.tree.VarInsnNode;
 import static jdk.internal.org.objectweb.asm.Opcodes.*;
 
 public class Plus implements Command {
+
+    @Override
+    public int add(String code, int currentCell) {
+        return 0;
+    }
+
     @Override
     public void execute(int numOfCommands) {
         LabelNode labelNode = new LabelNode();
-        Main.bytecode.add(new VarInsnNode(ALOAD,1));
-        Main.bytecode.add(new VarInsnNode(ILOAD,2));
-        Main.bytecode.add(new InsnNode(DUP2));
-        Main.bytecode.add(new InsnNode(IALOAD));
-        Main.pushNum(numOfCommands);
-        Main.bytecode.add(new InsnNode(IADD));
-        Main.bytecode.add(new InsnNode(DUP));
-        Main.pushNum(Main.maxValue);
-        Main.bytecode.add(new JumpInsnNode(IF_ICMPLE,labelNode));
-        Main.pushNum(Main.maxValue+1);
-        Main.bytecode.add(new InsnNode(ISUB));
-        Main.bytecode.add(labelNode);
-        Main.bytecode.add(new InsnNode(IASTORE));
+        Compiler.bytecode.add(new VarInsnNode(ALOAD,1));
+        Compiler.bytecode.add(new VarInsnNode(ILOAD,2));
+        Compiler.bytecode.add(new InsnNode(DUP2));
+        Compiler.bytecode.add(new InsnNode(IALOAD));
+        Compiler.pushNum(numOfCommands);
+        Compiler.bytecode.add(new InsnNode(IADD));
+        Compiler.bytecode.add(new InsnNode(DUP));
+        Compiler.pushNum(Compiler.maxValue);
+        Compiler.bytecode.add(new JumpInsnNode(IF_ICMPLE,labelNode));
+        Compiler.pushNum(Compiler.maxValue+1);
+        Compiler.bytecode.add(new InsnNode(ISUB));
+        Compiler.bytecode.add(labelNode);
+        Compiler.bytecode.add(new InsnNode(IASTORE));
     }
 
     @Override
