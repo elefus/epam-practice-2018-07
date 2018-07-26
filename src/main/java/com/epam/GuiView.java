@@ -85,14 +85,12 @@ class GuiView extends JFrame {
                     boolean isGui = true;
                     controller.interprete(controller.getSource(path), isGui);
                     for (int i = 0; i < size; i++) {
-                        line.append((int) model.getVal(i));
+                        line.append((int) model.getValue(i));
                         line.append(" ");
                     }
 
                     textArea.setText(line.toString());
-                } catch (IOException e1) {
-                    e1.printStackTrace();
-                } catch (URISyntaxException e1) {
+                } catch (IOException | URISyntaxException e1) {
                     e1.printStackTrace();
                 }
             }

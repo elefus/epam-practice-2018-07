@@ -9,13 +9,13 @@ import java.net.URISyntaxException;
 class Parser {
 
     public static void main(String[] args) throws IOException, URISyntaxException {
-        Options options = new Options();
-        options.addOption("h", false, "HELP");
-        options.addOption("g", false, "GUI");
-        options.addOption("s", true, "Memory size");
-        options.addOption("f", true, "Input file");
         CommandLineParser cmdLineParser = new DefaultParser();
         CommandLine commandLine;
+        Options options = new Options();
+        options.addOption("s", true, "Memory size");
+        options.addOption("f", true, "Input file");
+        options.addOption("h", false, "HELP");
+        options.addOption("g", false, "GUI");
 
         int size = 0;
 
