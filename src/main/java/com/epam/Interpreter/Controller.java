@@ -1,6 +1,5 @@
-package com.epam;
+package com.epam.Interpreter;
 
-import java.awt.*;
 import java.io.*;
 
 public class Controller {

@@ -1,4 +1,4 @@
-package com.epam;
+package com.epam.Interpreter;
 
 public class Model {
     private int memLength;
