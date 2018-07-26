@@ -1,4 +1,4 @@
-package com.epam;
+package com.epam.compiler;
 
 import jdk.internal.org.objectweb.asm.ClassWriter;
 import jdk.internal.org.objectweb.asm.Opcodes;

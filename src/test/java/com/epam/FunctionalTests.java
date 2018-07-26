@@ -1,5 +1,8 @@
 package com.epam;
 
+import com.epam.interpeter.ConsoleView;
+import com.epam.interpeter.Controller;
+import com.epam.interpeter.Model;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 

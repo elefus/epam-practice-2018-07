@@ -1,4 +1,4 @@
-package com.epam;
+package com.epam.interpeter;
 
 import org.apache.commons.cli.*;
 
@@ -18,8 +18,6 @@ public class OptionParser {
                 throw new ParseException("Option -h must go without another options/arguments");
         } else if (line.hasOption("S")) {
             if(args.length == 1) {
-                new SwingView().initialize(null, 30000, false);
-            } else {
                 int size = line.hasOption("s") ? Integer.parseInt(line.getOptionValue("s")) : 30000;
                 String fileName = line.hasOption("f") ? line.getOptionValue("f") : null;
                 new SwingView().initialize(fileName, size, line.hasOption("t"));
@@ -34,7 +32,7 @@ public class OptionParser {
     }
 
     private Options createOptions() {
-        Option  file = new Option("f","file", true, "Input file to read data from");
+        Option  file = new Option("f","file", true, "INPUT file to read data from");
         Option  help = new Option("h","help", false,"Get help about actual options");
         Option  size = new Option("s","size", true, "Dimension of array of cells");
         Option swing = new Option("S","swing",false,"Graphic display of the program ");

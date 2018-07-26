@@ -1,6 +1,7 @@
-package com.epam;
+package com.epam.interpeter;
 
 import java.io.IOException;
+
 import org.apache.commons.cli.ParseException;
 
 public class Launcher {
