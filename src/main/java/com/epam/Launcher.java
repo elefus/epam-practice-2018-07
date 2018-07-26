@@ -1,26 +1,55 @@
 package com.epam;
 
+import com.epam.interpreter.GuiView;
+import com.epam.interpreter.View;
+import javafx.application.Application;
+import javafx.application.Platform;
+import javafx.concurrent.Service;
+import javafx.concurrent.Task;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.stage.Stage;
 import org.apache.commons.cli.*;
 
 import java.io.*;
+
+import com.epam.compiler.Compiler;
+import com.epam.interpreter.Interpreter;
+import com.epam.interpreter.ConsoleView;
 
 class LaunchInfo {
     public final int tapeLength;
     public final String[] fileNames;
     public final Boolean needToCompile;
+    public final Boolean guiEnabled;
 
-    public LaunchInfo(int tapeLength, String[] fileNames, Boolean needToCompile) {
+    public LaunchInfo(int tapeLength, String[] fileNames, Boolean needToCompile,
+                      Boolean guiEnabled) {
         this.tapeLength = tapeLength;
         this.fileNames = fileNames;
         this.needToCompile = needToCompile;
+        this.guiEnabled = guiEnabled;
     }
 }
 
-public class Launcher {
+public class Launcher extends Application {
+
+    private Service<Void> service;
+    private String filePath;
+
+    public Service<Void> getService() {return service;}
+    public void setFilePath(String filePath) {this.filePath = filePath;}
+
     public static void main(String[] args) {
+        launch(args);
+    }
+
+    @Override
+    public void start(Stage primaryStage) throws Exception {
         LaunchInfo launchInfo;
         try {
-            launchInfo = parseArgs(args);
+            launchInfo = parseArgs(getParameters().getRaw().toArray(new String[0]));
         } catch (ParseException e) {
             System.out.println("Can't parse arguments");
             e.printStackTrace();
@@ -29,13 +58,14 @@ public class Launcher {
 
         if (launchInfo.needToCompile) {
             launchCompiler(launchInfo);
+            Platform.exit();
         } else {
-            launchInterpreter(launchInfo);
+            launchInterpreter(launchInfo, primaryStage);
         }
     }
 
     private static void launchCompiler(LaunchInfo launchInfo) {
-        Compiler compiler = new Compiler();
+        Compiler compiler = new Compiler(true);
 
         for (String file : launchInfo.fileNames) {
             try {
@@ -52,19 +82,72 @@ public class Launcher {
             System.out.println("Failed to write program.class");
             e.printStackTrace();
         }
+
+        compiler.launchProgram();
     }
 
-    private static void launchInterpreter(LaunchInfo launchInfo) {
-        Interpreter interpreter = new Interpreter(launchInfo.tapeLength, new ConsoleView());
+    private void launchInterpreter(LaunchInfo launchInfo, Stage primaryStage) {
 
-        for (String file : launchInfo.fileNames) {
+        View view;
+        if (launchInfo.guiEnabled) {
             try {
-                interpreter.interpret(readAllLines(file));
+                FXMLLoader loader = new FXMLLoader(Launcher.class.getResource("InterpreterWindowLayout.fxml"));
+                Parent load = loader.load();
+                view = loader.getController();
+                ((GuiView) view).setController(this);
+                ((GuiView) view).setStage(primaryStage);
+                primaryStage.setTitle("Brainfuck interpreter");
+                primaryStage.setScene(new Scene(load));
+                primaryStage.show();
             } catch (IOException e) {
-                System.out.println("Failed to read " + file);
+                System.out.println("Failed to load GUI. Interpreter will work with the console");
                 e.printStackTrace();
+                view = new ConsoleView();
             }
+        } else {
+            view = new ConsoleView();
         }
+
+        final View viewFinal = view;
+        service = new Service<Void>() {
+            @Override
+            protected Task<Void> createTask() {
+                return new Task<Void>() {
+                    @Override
+                    protected Void call() {
+                        Interpreter interpreter = new Interpreter(launchInfo.tapeLength, viewFinal);
+
+                        if (filePath != null) {
+                            try {
+                                interpreter.interpret(readAllLines(filePath));
+                            } catch (IOException e) {
+                                System.out.println("Failed to read " + filePath);
+                                e.printStackTrace();
+                            }
+                        } else {
+                            for (String file : launchInfo.fileNames) {
+                                try {
+                                    interpreter.interpret(readAllLines(file));
+                                } catch (IOException e) {
+                                    System.out.println("Failed to read " + file);
+                                    e.printStackTrace();
+                                }
+                            }
+                        }
+
+                        if (!launchInfo.guiEnabled)
+                            Platform.exit();
+                        else
+                            ((GuiView) viewFinal).controllerFinishedWork();
+
+                        return null;
+                    }
+                };
+            }
+        };
+
+        if (!launchInfo.guiEnabled)
+            service.start();
     }
 
     public static String readAllLines(String fileName) throws IOException {
@@ -87,6 +170,9 @@ public class Launcher {
         Option needToCompileOption = new Option("c", "compile", false,
                 "Need to compile program");
 
+        Option guiEnabledOption = new Option("g", "gui", false,
+                "Enable graphical user interface");
+
         // interpreter.exe -s src1.bf src2.bf src3.bf ...
         Option sourcesOption = new Option("s", "sources", true,
                 "1-20 files with source code");
@@ -96,6 +182,7 @@ public class Launcher {
         Options options = new Options();
         options.addOption(tapeLengthOption);
         options.addOption(needToCompileOption);
+        options.addOption(guiEnabledOption);
         options.addOption(sourcesOption);
 
         CommandLineParser cmdLineParser = new DefaultParser();
@@ -114,13 +201,11 @@ public class Launcher {
             }
         }
 
-        Boolean needToCompile = cmdLine.hasOption("c");
-
         String[] fileNames = new String[0];
         if (cmdLine.hasOption("s")) {
             fileNames = cmdLine.getOptionValues("s");
         }
 
-        return new LaunchInfo(tapeLength, fileNames, needToCompile);
+        return new LaunchInfo(tapeLength, fileNames, cmdLine.hasOption("c"), cmdLine.hasOption("g"));
     }
 }

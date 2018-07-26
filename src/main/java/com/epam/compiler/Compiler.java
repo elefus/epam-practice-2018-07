@@ -1,4 +1,4 @@
-package com.epam;
+package com.epam.compiler;
 
 import jdk.internal.org.objectweb.asm.ClassWriter;
 import jdk.internal.org.objectweb.asm.Opcodes;
@@ -7,6 +7,7 @@ import jdk.internal.org.objectweb.asm.tree.*;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Stack;
 
 import static jdk.internal.org.objectweb.asm.Opcodes.*;
@@ -16,9 +17,11 @@ public class Compiler {
     private ClassNode programClass;
     private MethodNode runMethod;
     private Boolean runMethodHasReturn;
+    private Boolean enableOptimization;
 
-    public Compiler() {
+    public Compiler(Boolean enableOptimization) {
         runMethodHasReturn = false;
+        this.enableOptimization = enableOptimization;
         programClass = new ClassNode();
         programClass.version = Opcodes.V1_8;
         programClass.access = ACC_PUBLIC;
@@ -46,6 +49,11 @@ public class Compiler {
         if (runMethodHasReturn)
             throw new IllegalStateException("run() method already has a return statement");
 
+        ArrayList<Token> tokens = Tokenizer.tokenize(sourceCode);
+
+        if (enableOptimization)
+            Optimizer.optimize(tokens);
+
         InsnList bytecode = runMethod.instructions;
 
         bytecode.add(new LdcInsnNode(30000));
@@ -56,86 +64,42 @@ public class Compiler {
 
         Stack<LabelNode> labels = new Stack<>();
 
-        for (int i = 0; i < sourceCode.length(); i++) {
+        for (Token token : tokens) {
             LabelNode label = new LabelNode();
-            switch (sourceCode.charAt(i)) {
-                case '>':
-                    bytecode.add(new IincInsnNode(2, 1));
-                    bytecode.add(new VarInsnNode(ILOAD, 2));
-                    bytecode.add(new VarInsnNode(ALOAD, 1));
-                    bytecode.add(new InsnNode(ARRAYLENGTH));
-                    bytecode.add(new JumpInsnNode(IF_ICMPNE, label));
-                    bytecode.add(new InsnNode(ICONST_0));
-                    bytecode.add(new VarInsnNode(ISTORE, 2));
-                    bytecode.add(label);
-                    break;
-
-                case '<':
-                    bytecode.add(new IincInsnNode(2, -1));
-                    bytecode.add(new VarInsnNode(ILOAD, 2));
-                    bytecode.add(new InsnNode(ICONST_M1));
-                    bytecode.add(new JumpInsnNode(IF_ICMPNE, label));
-                    bytecode.add(new VarInsnNode(ALOAD, 1));
-                    bytecode.add(new InsnNode(ARRAYLENGTH));
-                    bytecode.add(new InsnNode(ICONST_1));
-                    bytecode.add(new InsnNode(ISUB));
-                    bytecode.add(new VarInsnNode(ISTORE, 2));
-                    bytecode.add(label);
-                    break;
-
-                case '+':
+            switch (token.type) {
+                case Add:
                     bytecode.add(new VarInsnNode(ALOAD, 1));
                     bytecode.add(new VarInsnNode(ILOAD, 2));
                     bytecode.add(new InsnNode(DUP2));
                     bytecode.add(new InsnNode(CALOAD));
-                    bytecode.add(new InsnNode(ICONST_1));
+                    bytecode.add(new LdcInsnNode(token.parameter));
                     bytecode.add(new InsnNode(IADD));
-                    bytecode.add(new InsnNode(I2C));
-                    bytecode.add(new InsnNode(CASTORE));
-
-                    bytecode.add(new VarInsnNode(ALOAD, 1));
-                    bytecode.add(new VarInsnNode(ILOAD, 2));
-                    bytecode.add(new InsnNode(CALOAD));
                     bytecode.add(new LdcInsnNode(256));
-                    bytecode.add(new JumpInsnNode(IF_ICMPNE, label));
-                    bytecode.add(new VarInsnNode(ALOAD, 1));
-                    bytecode.add(new VarInsnNode(ILOAD, 2));
-                    bytecode.add(new InsnNode(ICONST_0));
-                    bytecode.add(new InsnNode(CASTORE));
-                    bytecode.add(label);
-                    break;
-
-                case '-':
-                    bytecode.add(new VarInsnNode(ALOAD, 1));
-                    bytecode.add(new VarInsnNode(ILOAD, 2));
-                    bytecode.add(new InsnNode(DUP2));
-                    bytecode.add(new InsnNode(CALOAD));
-                    bytecode.add(new InsnNode(ICONST_M1));
-                    bytecode.add(new InsnNode(IADD));
+                    bytecode.add(new InsnNode(IREM));
                     bytecode.add(new InsnNode(I2C));
                     bytecode.add(new InsnNode(CASTORE));
+                    break;
+
+                case Shift:
+                    bytecode.add(new VarInsnNode(ILOAD, 2));
+                    bytecode.add(new LdcInsnNode(token.parameter));
+                    bytecode.add(new InsnNode(IADD));
+                    bytecode.add(new LdcInsnNode(30000));
+                    bytecode.add(new InsnNode(IREM));
+                    bytecode.add(new VarInsnNode(ISTORE, 2));
+                    bytecode.add(new VarInsnNode(ILOAD, 2));
+                    bytecode.add(new JumpInsnNode(IFGE, label));
 
                     bytecode.add(new VarInsnNode(ALOAD, 1));
+                    bytecode.add(new InsnNode(ARRAYLENGTH));
                     bytecode.add(new VarInsnNode(ILOAD, 2));
-                    bytecode.add(new InsnNode(CALOAD));
-                    bytecode.add(new LdcInsnNode(65535));
-                    bytecode.add(new JumpInsnNode(IF_ICMPNE, label));
-                    bytecode.add(new VarInsnNode(ALOAD, 1));
-                    bytecode.add(new VarInsnNode(ILOAD, 2));
-                    bytecode.add(new LdcInsnNode(255));
-                    bytecode.add(new InsnNode(CASTORE));
+                    bytecode.add(new InsnNode(IADD));
+                    bytecode.add(new VarInsnNode(ISTORE, 2));
+
                     bytecode.add(label);
                     break;
 
-                case '.':
-                    bytecode.add(new FieldInsnNode(GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;"));
-                    bytecode.add(new VarInsnNode(ALOAD, 1));
-                    bytecode.add(new VarInsnNode(ILOAD, 2));
-                    bytecode.add(new InsnNode(CALOAD));
-                    bytecode.add(new MethodInsnNode(INVOKEVIRTUAL, "java/io/PrintStream", "print", "(C)V", false));
-                    break;
-
-                case ',':
+                case Input:
                     bytecode.add(new VarInsnNode(ALOAD, 1));
                     bytecode.add(new VarInsnNode(ILOAD, 2));
                     bytecode.add(new FieldInsnNode(GETSTATIC, "java/lang/System", "in", "Ljava/io/InputStream;"));
@@ -143,7 +107,22 @@ public class Compiler {
                     bytecode.add(new InsnNode(CASTORE));
                     break;
 
-                case '[':
+                case Output:
+                    bytecode.add(new FieldInsnNode(GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;"));
+                    bytecode.add(new VarInsnNode(ALOAD, 1));
+                    bytecode.add(new VarInsnNode(ILOAD, 2));
+                    bytecode.add(new InsnNode(CALOAD));
+                    bytecode.add(new MethodInsnNode(INVOKEVIRTUAL, "java/io/PrintStream", "print", "(C)V", false));
+                    break;
+
+                case SetToZero:
+                    bytecode.add(new VarInsnNode(ALOAD, 1));
+                    bytecode.add(new VarInsnNode(ILOAD, 2));
+                    bytecode.add(new InsnNode(ICONST_0));
+                    bytecode.add(new InsnNode(CASTORE));
+                    break;
+
+                case LoopStart:
                     LabelNode begin = new LabelNode();
                     LabelNode end = new LabelNode();
 
@@ -157,7 +136,7 @@ public class Compiler {
                     bytecode.add(new JumpInsnNode(IFEQ, end));
                     break;
 
-                case ']':
+                case LoopEnd:
                     bytecode.add(new JumpInsnNode(GOTO, labels.pop()));
                     bytecode.add(labels.pop());
                     break;
