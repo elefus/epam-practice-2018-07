@@ -7,13 +7,10 @@ import java.net.URISyntaxException;
 class GuiView extends JFrame {
     private JPanel mainPanel;
     private JButton startButton;
-    private JButton exitButton;
-
-
     private JTextArea textArea;
     private JComboBox chooseBox;
     private JTextField memorySize;
-    private String way;
+    private String path;
 
     GuiView() {
         super("INTERPRETER");
@@ -45,32 +42,32 @@ class GuiView extends JFrame {
         chooseBox.addActionListener(e -> {
             switch (chooseBox.getSelectedIndex()) {
                 case 0:
-                    way = (String) chooseBox.getSelectedItem();
+                    path = (String) chooseBox.getSelectedItem();
                     break;
                 case 1:
-                    way = (String) chooseBox.getSelectedItem();
+                    path = (String) chooseBox.getSelectedItem();
 
                     break;
                 case 2:
-                    way = (String) chooseBox.getSelectedItem();
+                    path = (String) chooseBox.getSelectedItem();
                     break;
                 case 3:
-                    way = (String) chooseBox.getSelectedItem();
+                    path = (String) chooseBox.getSelectedItem();
                     break;
                 case 4:
-                    way = (String) chooseBox.getSelectedItem();
+                    path = (String) chooseBox.getSelectedItem();
                     break;
                 case 5:
-                    way = (String) chooseBox.getSelectedItem();
+                    path = (String) chooseBox.getSelectedItem();
                     break;
                 case 6:
-                    way = (String) chooseBox.getSelectedItem();
+                    path = (String) chooseBox.getSelectedItem();
                     break;
                 case 7:
-                    way = (String) chooseBox.getSelectedItem();
+                    path = (String) chooseBox.getSelectedItem();
                     break;
                 case 8:
-                    way = (String) chooseBox.getSelectedItem();
+                    path = (String) chooseBox.getSelectedItem();
                     break;
             }
         });
@@ -86,7 +83,7 @@ class GuiView extends JFrame {
                 StringBuilder line = new StringBuilder();
                 try {
                     boolean isGui = true;
-                    controller.interprete(controller.getSource(way), isGui);
+                    controller.interprete(controller.getSource(path), isGui);
                     for (int i = 0; i < size; i++) {
                         line.append((int) model.getVal(i));
                         line.append(" ");
