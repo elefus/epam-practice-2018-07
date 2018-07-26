@@ -12,6 +12,7 @@ class Launcher{
 		options.addOption("h", false, "help");
 		options.addOption("g", false, "running the GUI");
 		options.addOption("o", true, "output source code");
+		options.addOption("c", false, "Running the compiler");
 		options.addOption("s", true, "set the size for cells");
 		options.addOption("i", true, "set the full path to the file");
 		CommandLineParser cmdLineParser = new DefaultParser();
@@ -41,6 +42,10 @@ class Launcher{
 				System.out.println(control.getFileCode(commandLine.getOptionValue("o")));
 			} else
 				if(commandLine.hasOption("i")) {
+				if(commandLine.hasOption("c")) {
+					Compiler compiler = new Compiler();
+					compiler.compile(control.getFileCode(commandLine.getOptionValue("i")));
+				} else
 					control.interpreter(control.getFileCode(commandLine.getOptionValue("i")),false);
 			}
 		} catch (ParseException ex) {
