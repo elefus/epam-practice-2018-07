@@ -1,12 +1,22 @@
 package com.epam;
 
-import java.io.BufferedReader;
+class Model {
 
- public class Model {
-     protected static final int MAX_STACK_SIZE = 30000;
-     protected static final int MAX_CELL_SIZE = 255;
-     protected static BufferedReader input;
-     protected static char[] memory = new char[MAX_STACK_SIZE];
+    int memorySize;
+    public static int ptr;
+    char[] memory;
+    private int maxMemorySize = 30000;
+    private final int maxCellSize = 255;
+
+    Model(int size) {
+        if ((size != 0) && (size < 30000)) memorySize = size;
+        else memorySize = maxMemorySize;
+        memory = new char[memorySize];
+    }
+
+    public char getValue(int i) {
+        return memory[i];
+    }
 
 
 }

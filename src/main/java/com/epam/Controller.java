@@ -1,107 +1,116 @@
 package com.epam;
 
-import java.io.File;
-import java.nio.file.Files;
+import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-
-import java.io.IOException;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.net.URISyntaxException;
-
-import static java.util.stream.Collectors.joining;
-
-public class Controller {
-    private final View view;
-    private final Model model;
-    private final boolean isTrace;
-    private final char[] sourceCode;
+import java.io.*;
 
 
-    public Controller(String fileName, Model model, View view, boolean isTrace) throws IOException, URISyntaxException {
-        this.view = view;
+class Controller {
+
+    private Model model;
+    private View view;
+    boolean type;
+
+    Controller(Model model, View view) {
         this.model = model;
-        this.isTrace = isTrace;
-        sourceCode = getSourceCode(fileName);
+        this.view = view;
     }
 
-    public void process() throws IOException {
+
+    String getSource(String fileName) throws URISyntaxException, IOException {
+        Path path = Paths.get(new File(fileName).getPath());
+
+        if (Controller.class.getResource("./../../" + fileName) != null)
+            path = Paths.get(Controller.class.getResource("./../../" + fileName).toURI());
+
+        if (path == null)
+            throw new FileNotFoundException("This file doesn't exist");
+
+        try (InputStream in = new FileInputStream(path.toString());
+             BufferedReader reader = new BufferedReader(new InputStreamReader(in))) {
+
+            StringBuilder builder = new StringBuilder();
+            String line;
+
+            while ((line = reader.readLine()) != null)
+                builder.append(line);
+
+            return builder.toString();
+        }
+    }
+
+    void interprete(String sourceCode, boolean isGui) throws IOException {
+        int memPtr = 0;
         int count = 0;
-        for (int prgPtr = 0; prgPtr < sourceCode.length; prgPtr++) {
-            if (isTrace)
-                if (",.><+-[]".contains(Character.toString(sourceCode[prgPtr])))
-                    view.traceCommand(model.getPointer(), sourceCode[prgPtr], model.getValue());
-
-            switch (sourceCode[prgPtr]) {
-                case ',':
-                    int sym = view.inputData();
-                    model.setValue(sym);
-                    break;
-
-                case '.':
-                    view.outputData((char) model.getValue());
-                    break;
+        for (int i = 0; i < sourceCode.length(); i++)
+            switch (sourceCode.charAt(i)) {
 
                 case '>':
-                    model.shiftRight();
+                    if ((memPtr + 1) == model.memorySize) {
+                        memPtr = 0;
+                    } else
+                        memPtr++;
                     break;
 
                 case '<':
-                    model.shiftLeft();
+                    if (memPtr == 0) {
+                        memPtr = model.memorySize - 1;
+                    } else
+                        memPtr--;
                     break;
 
                 case '+':
-                    model.inc();
+                    if (model.memory[memPtr] == 255) {
+                        model.memory[memPtr] = 0;
+                    } else
+                        model.memory[memPtr]++;
                     break;
 
                 case '-':
-                    model.dec();
+                    if (model.memory[memPtr] == 0) {
+                        model.memory[memPtr] = 255;
+                    } else
+                        model.memory[memPtr]--;
+                    break;
+
+                case ',':
+                    if (isGui)
+                        model.memory[memPtr] = GuiView.enterParameter();
+                    else
+                        model.memory[memPtr] = view.readData();
+                    break;
+
+                case '.':
+                    if (!isGui) view.printData(model.memory[memPtr]);
                     break;
 
                 case '[':
-                    if (model.getValue() == 0)
-                        prgPtr++;
-                    while (count != 0 || sourceCode[prgPtr] != ']') {
-                        if (sourceCode[prgPtr] == '[') {
-                            count++;
-                        }
-                        if (sourceCode[prgPtr] == ']') {
-                            count--;
+                    if (model.memory[memPtr] == 0) {
+                        i++;
+                        while (count > 0 || sourceCode.charAt(i) != ']') {
+                            if (sourceCode.charAt(i) == '[')
+                                count++;
+                            if (sourceCode.charAt(i) == ']')
+                                count--;
+                            i++;
                         }
                     }
                     break;
 
                 case ']':
-                    if (model.getValue() != 0)
-                        prgPtr--;
-
-                    while (sourceCode[prgPtr] != '[' || count > 0) {
-                        if (sourceCode[prgPtr] == ']')
-                            count++;
-                        else if (sourceCode[prgPtr] == '[')
-                            count--;
-                        prgPtr--;
+                    if (model.memory[memPtr] != 0) {
+                        i--;
+                        while (count > 0 || sourceCode.charAt(i) != '[') {
+                            if (sourceCode.charAt(i) == ']')
+                                count++;
+                            if (sourceCode.charAt(i) == '[')
+                                count--;
+                            i--;
+                        }
+                        i--;
                     }
-
-                    prgPtr--;
                     break;
-
-                default:
             }
-        }
-    }
-
-
-    private static char[] getSourceCode(String fileName) throws IOException, URISyntaxException {
-
-       String code;
-
-        if (Controller.class.getResource("./../../" + fileName) == null) {
-            throw new FileNotFoundException("File not found");
-        }
-        code = Files.lines(Paths.get(Controller.class.getResource("./../../" + fileName).toURI()))
-                .collect(joining());
-        return code.toString().toCharArray();
     }
 }

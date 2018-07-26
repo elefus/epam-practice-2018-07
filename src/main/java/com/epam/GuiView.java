@@ -1,190 +1,102 @@
 package com.epam;
 
-import java.awt.event.*;
-import java.io.*;
-import java.awt.*;
 import javax.swing.*;
+import java.io.IOException;
 import java.net.URISyntaxException;
-import java.util.concurrent.TimeUnit;
 
-public class GuiView extends JFrame implements View {
-    private JPanel panelMain;
+class GuiView extends JFrame {
+    private JPanel mainPanel;
     private JButton startButton;
-    private boolean isEnter;
-    private JButton btnEnter;
-    private JTextArea fileArea;
-    private JTextArea sizeArea;
-    private JTextArea inputArea;
-    private JTextArea output;
-    private JRadioButton[] options;
-    private JRadioButton SizeRadioButton;
-    private JRadioButton TraceRadioButton;
-    private JRadioButton FileRadioButton;
+    private JTextArea textArea;
+    private JComboBox chooseBox;
+    private JTextField memorySize;
+    private String path;
 
-    public GuiView() {
-
-        this.setContentPane(panelMain);
-        this.setSize(700, 400);
-        this.setResizable(false);
-        this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        this.setVisible(true);
-    }
-
-    public void initialize(String fileName, int arrSize, boolean isTrace) {
-
-        setControlElements();
-        setOptionElements();
-        setIOElements();
-        setContentPane(panelMain);
-
-        if (fileName != null) {
-            FileRadioButton.setSelected(true);
-            fileArea.setText(fileName);
-            fileArea.setEditable(true);
-        }
-
-        if (arrSize != 30000) {
-            SizeRadioButton.setSelected(true);
-            sizeArea.setText(Integer.toString(arrSize));
-            sizeArea.setEditable(true);
-        }
-
-        if (isTrace)
-            TraceRadioButton.setSelected(true);
-
+    GuiView() {
+        super("INTERPRETER");
+        super.setSize(700, 500);
+        chooseBox.addItem("1.bf");
+        chooseBox.addItem("2.bf");
+        chooseBox.addItem("3.bf");
+        chooseBox.addItem("4.bf");
+        chooseBox.addItem("5.bf");
+        chooseBox.addItem("6.bf");
+        chooseBox.addItem("7.bf");
+        chooseBox.addItem("8.bf");
+        chooseBox.addItem("9.bf");
+        setContentPane(mainPanel);
         setVisible(true);
-    }
-
-    private void startProcess() {
-        GuiView view = this;
-
-        SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
-            @Override
-            protected Void doInBackground() throws URISyntaxException {
-                String fileName = FileRadioButton.isSelected() ? fileName = fileArea.getText() : null;
-                int size = SizeRadioButton.isSelected() ? Integer.parseInt(sizeArea.getText()) : 30000;
-                boolean isTrace = TraceRadioButton.isSelected();
-
-                try {
-                    startButton.setEnabled(false);
-                    new Controller(fileName, new Model(size), view, isTrace).process();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                startButton.setEnabled(true);
-                return null;
-            }
-        };
-        worker.execute();
-    }
-
-    @Override
-    public char inputData() {
-        inputArea.setEnabled(true);
-        inputArea.setText("");
-        btnEnter.setEnabled(true);
-        output.append("\n[Enter value to input area]:");
-
-        while (!isEnter) {
-            try {
-                TimeUnit.MILLISECONDS.sleep(10);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-
-        isEnter = !isEnter;
-        btnEnter.setEnabled(false);
-        inputArea.setEnabled(false);
-        return inputArea.getText().charAt(0);
-    }
-
-
-    @Override
-    public void outputData(int value) {
-        output.append(Integer.toString((int) value));
-    }
-
-    @Override
-    public void traceCommand(int cellIndex, char operation, int value) {
-        output.append("\n|| CELL : '" + (cellIndex + 1) + "' || OPERATION : '" + operation + "' || VALUE : '" +
-                (int) value + "' ||");
-    }
-
-    private void setControlElements() {
-
-
-
-        startButton.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                inputArea.setText("");
-                output.setText("");
-                startProcess();
-            }
-        });
+        setLocationRelativeTo(null);
+        textArea.setEditable(false);
+        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        createListeners();
 
     }
 
-    private void setOptionElements() {
+    static char enterParameter() {
+        String parameter = JOptionPane.showInputDialog(null, "Enter parameter");
+        return parameter.charAt(0);
+    }
 
-
-        for (int i = 0; i < 3; i++) {
-
-
-            switch (i) {
+    private void createListeners() {
+        chooseBox.addActionListener(e -> {
+            switch (chooseBox.getSelectedIndex()) {
                 case 0:
-
-                    FileRadioButton.addMouseListener(new MouseAdapter() {
-                        @Override
-                        public void mouseClicked(MouseEvent e) {
-                            if (!fileArea.isEditable()) {
-                                fileArea.setEditable(true);
-                            } else {
-                                fileArea.setText("");
-                                fileArea.setEditable(false);
-                            }
-                        }
-                    });
+                    path = (String) chooseBox.getSelectedItem();
                     break;
-
                 case 1:
+                    path = (String) chooseBox.getSelectedItem();
 
-                    SizeRadioButton.addMouseListener(new MouseAdapter() {
-                        @Override
-                        public void mouseClicked(MouseEvent e) {
-                            if (!sizeArea.isEditable()) {
-                                sizeArea.setText("30000");
-                                sizeArea.setEditable(true);
-                            } else {
-                                sizeArea.setText("");
-                                sizeArea.setEditable(false);
-                            }
-                        }
-                    });
                     break;
-
                 case 2:
-                    TraceRadioButton.setText("trace");
+                    path = (String) chooseBox.getSelectedItem();
                     break;
-            }
-
-        }
-    }
-
-    private void setIOElements() {
-
-        inputArea.setEditable(true);
-        inputArea.setEnabled(false);
-
-        btnEnter.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                isEnter = !isEnter;
+                case 3:
+                    path = (String) chooseBox.getSelectedItem();
+                    break;
+                case 4:
+                    path = (String) chooseBox.getSelectedItem();
+                    break;
+                case 5:
+                    path = (String) chooseBox.getSelectedItem();
+                    break;
+                case 6:
+                    path = (String) chooseBox.getSelectedItem();
+                    break;
+                case 7:
+                    path = (String) chooseBox.getSelectedItem();
+                    break;
+                case 8:
+                    path = (String) chooseBox.getSelectedItem();
+                    break;
             }
         });
-        btnEnter.setEnabled(false);
-        output.setEditable(false);
 
+
+        startButton.addActionListener(e -> {
+            if (e.getSource() == startButton) {
+                int size;
+                size = Integer.parseInt(memorySize.getText());
+                Model model = new Model(size);
+                View view = new View();
+                Controller controller = new Controller(model, view);
+                StringBuilder line = new StringBuilder();
+                try {
+                    boolean isGui = true;
+                    controller.interprete(controller.getSource(path), isGui);
+                    for (int i = 0; i < size; i++) {
+                        line.append((int) model.getValue(i));
+                        line.append(" ");
+                    }
+
+                    textArea.setText(line.toString());
+                } catch (IOException | URISyntaxException e1) {
+                    e1.printStackTrace();
+                }
+            }
+        });
+
+
+        ;
     }
 }

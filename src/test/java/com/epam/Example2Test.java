@@ -1,4 +1,4 @@
-package com.epam;
+/*package com.epam;
 
 import org.junit.jupiter.api.Test;
 
@@ -27,3 +27,4 @@ class Example2Test {
         assertEquals(-4, result);
     }
 }
+*/
