@@ -17,7 +17,7 @@ class GuiView extends JFrame {
 
     GuiView() {
         super("INTERPRETER");
-        super.setSize(700, 480);
+        super.setSize(700, 500);
         chooseBox.addItem("1.bf");
         chooseBox.addItem("2.bf");
         chooseBox.addItem("3.bf");
@@ -32,7 +32,7 @@ class GuiView extends JFrame {
         setLocationRelativeTo(null);
         textArea.setEditable(false);
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        addListeners();
+        createListeners();
 
     }
 
@@ -41,7 +41,7 @@ class GuiView extends JFrame {
         return parameter.charAt(0);
     }
 
-    private void addListeners() {
+    private void createListeners() {
         chooseBox.addActionListener(e -> {
             switch (chooseBox.getSelectedIndex()) {
                 case 0:
@@ -70,12 +70,6 @@ class GuiView extends JFrame {
                     way = (String) chooseBox.getSelectedItem();
                     break;
                 case 8:
-                    way = (String) chooseBox.getSelectedItem();
-                    break;
-                case 9:
-                    way = (String) chooseBox.getSelectedItem();
-                    break;
-                case 10:
                     way = (String) chooseBox.getSelectedItem();
                     break;
             }

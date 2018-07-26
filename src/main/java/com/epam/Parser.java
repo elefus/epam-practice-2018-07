@@ -1,12 +1,9 @@
-
 package com.epam;
 
 import org.apache.commons.cli.*;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
-
-
 
 
 class Parser {
@@ -31,7 +28,6 @@ class Parser {
 
             if (commandLine.hasOption("g")) {
                 new GuiView();
-                return;
             }
 
             Controller control = new Controller(new Model(size), new View());

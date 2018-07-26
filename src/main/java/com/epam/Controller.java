@@ -47,7 +47,7 @@ class Controller {
             switch (sourceCode.charAt(i)) {
 
                 case '>':
-                    if (memPtr == (model.memorySize - 1)) {
+                    if ((memPtr + 1) == model.memorySize) {
                         memPtr = 0;
                     } else
                         memPtr++;
@@ -89,8 +89,10 @@ class Controller {
                     if (model.memory[memPtr] == 0) {
                         i++;
                         while (count > 0 || sourceCode.charAt(i) != ']') {
-                            if (sourceCode.charAt(i) == '[') count++;
-                            if (sourceCode.charAt(i) == ']') count--;
+                            if (sourceCode.charAt(i) == '[')
+                                count++;
+                            if (sourceCode.charAt(i) == ']')
+                                count--;
                             i++;
                         }
                     }
@@ -100,8 +102,10 @@ class Controller {
                     if (model.memory[memPtr] != 0) {
                         i--;
                         while (count > 0 || sourceCode.charAt(i) != '[') {
-                            if (sourceCode.charAt(i) == ']') count++;
-                            if (sourceCode.charAt(i) == '[') count--;
+                            if (sourceCode.charAt(i) == ']')
+                                count++;
+                            if (sourceCode.charAt(i) == '[')
+                                count--;
                             i--;
                         }
                         i--;
