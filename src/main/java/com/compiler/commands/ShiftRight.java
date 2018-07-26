@@ -1,6 +1,6 @@
 package com.compiler.commands;
 
-import com.compiler.Main;
+import com.compiler.Compiler;
 import jdk.internal.org.objectweb.asm.tree.InsnNode;
 import jdk.internal.org.objectweb.asm.tree.JumpInsnNode;
 import jdk.internal.org.objectweb.asm.tree.LabelNode;
@@ -9,19 +9,25 @@ import jdk.internal.org.objectweb.asm.tree.VarInsnNode;
 import static jdk.internal.org.objectweb.asm.Opcodes.*;
 
 public class ShiftRight implements Command {
+
+    @Override
+    public int add(String code, int currentCell) {
+        return 0;
+    }
+
     @Override
     public void execute(int numOfCommands) {
         LabelNode labelNode = new LabelNode();
-        Main.bytecode.add(new VarInsnNode(ILOAD,2));
-        Main.pushNum(numOfCommands);
-        Main.bytecode.add(new InsnNode(IADD));
-        Main.bytecode.add(new InsnNode(DUP));
-        Main.pushNum(Main.numOfCells);
-        Main.bytecode.add(new JumpInsnNode(IF_ICMPLT,labelNode));
-        Main.pushNum(Main.numOfCells);
-        Main.bytecode.add(new InsnNode(ISUB));
-        Main.bytecode.add(labelNode);
-        Main.bytecode.add(new VarInsnNode(ISTORE,2));
+        Compiler.bytecode.add(new VarInsnNode(ILOAD,2));
+        Compiler.pushNum(numOfCommands);
+        Compiler.bytecode.add(new InsnNode(IADD));
+        Compiler.bytecode.add(new InsnNode(DUP));
+        Compiler.pushNum(Compiler.NUM_OF_CELLS);
+        Compiler.bytecode.add(new JumpInsnNode(IF_ICMPLT,labelNode));
+        Compiler.pushNum(Compiler.NUM_OF_CELLS);
+        Compiler.bytecode.add(new InsnNode(ISUB));
+        Compiler.bytecode.add(labelNode);
+        Compiler.bytecode.add(new VarInsnNode(ISTORE,2));
     }
 
     @Override
