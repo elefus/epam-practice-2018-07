@@ -1,5 +1,6 @@
 package com.epam;
 
+import com.epam.interpreter.GuiView;
 import com.epam.interpreter.View;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -33,6 +34,13 @@ class LaunchInfo {
 }
 
 public class Launcher extends Application {
+
+    private Service<Void> service;
+    private String filePath;
+
+    public Service<Void> getService() {return service;}
+    public void setFilePath(String filePath) {this.filePath = filePath;}
+
     public static void main(String[] args) {
         launch(args);
     }
@@ -78,7 +86,7 @@ public class Launcher extends Application {
         compiler.launchProgram();
     }
 
-    private static void launchInterpreter(LaunchInfo launchInfo, Stage primaryStage) {
+    private void launchInterpreter(LaunchInfo launchInfo, Stage primaryStage) {
 
         View view;
         if (launchInfo.guiEnabled) {
@@ -86,6 +94,8 @@ public class Launcher extends Application {
                 FXMLLoader loader = new FXMLLoader(Launcher.class.getResource("InterpreterWindowLayout.fxml"));
                 Parent load = loader.load();
                 view = loader.getController();
+                ((GuiView) view).setController(this);
+                ((GuiView) view).setStage(primaryStage);
                 primaryStage.setTitle("Brainfuck interpreter");
                 primaryStage.setScene(new Scene(load));
                 primaryStage.show();
@@ -99,7 +109,7 @@ public class Launcher extends Application {
         }
 
         final View viewFinal = view;
-        Service<Void> service = new Service<Void>() {
+        service = new Service<Void>() {
             @Override
             protected Task<Void> createTask() {
                 return new Task<Void>() {
@@ -107,24 +117,37 @@ public class Launcher extends Application {
                     protected Void call() {
                         Interpreter interpreter = new Interpreter(launchInfo.tapeLength, viewFinal);
 
-                        for (String file : launchInfo.fileNames) {
+                        if (filePath != null) {
                             try {
-                                interpreter.interpret(readAllLines(file));
+                                interpreter.interpret(readAllLines(filePath));
                             } catch (IOException e) {
-                                System.out.println("Failed to read " + file);
+                                System.out.println("Failed to read " + filePath);
                                 e.printStackTrace();
+                            }
+                        } else {
+                            for (String file : launchInfo.fileNames) {
+                                try {
+                                    interpreter.interpret(readAllLines(file));
+                                } catch (IOException e) {
+                                    System.out.println("Failed to read " + file);
+                                    e.printStackTrace();
+                                }
                             }
                         }
 
                         if (!launchInfo.guiEnabled)
                             Platform.exit();
+                        else
+                            ((GuiView) viewFinal).controllerFinishedWork();
 
                         return null;
                     }
                 };
             }
         };
-        service.start();
+
+        if (!launchInfo.guiEnabled)
+            service.start();
     }
 
     public static String readAllLines(String fileName) throws IOException {
