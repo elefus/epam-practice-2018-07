@@ -11,8 +11,6 @@ import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-
-
 class Compiler {
 
     private ClassNode classNode;
@@ -23,10 +21,9 @@ class Compiler {
         classNode = new ClassNode();
         classNode.version = Opcodes.V1_8;
         classNode.access = ACC_PUBLIC;
-        classNode.name = "MyClass";
+        classNode.name = "Compiled";
         classNode.superName = "java/lang/Object";
         classNode.interfaces.add("java/lang/Runnable");
-
         MethodNode constructor = new MethodNode(ACC_PUBLIC, "<init>", "()V", null, null);
         InsnList bytecode = constructor.instructions;
         bytecode.add(new VarInsnNode(ALOAD, 0));
@@ -61,8 +58,10 @@ class Compiler {
 
         if (commandLine != null) {
             compiler.compile(compiler.getSource(commandLine.getOptionValue("f")));
+
         }
     }
+
     private String getSource(String fileName) throws URISyntaxException, IOException {
         Path path = Paths.get(new File(fileName).getPath());
 
@@ -84,6 +83,7 @@ class Compiler {
             return builder.toString();
         }
     }
+
     private void compile(String code) throws IOException {
 
         Stack<LabelNode> labl = new Stack<>();
@@ -91,6 +91,23 @@ class Compiler {
         for (int i = 0; i < code.length(); i++) {
             LabelNode label = new LabelNode();
             switch (code.charAt(i)) {
+
+                case '.':
+                    command.add(new FieldInsnNode(GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;"));
+                    command.add(new VarInsnNode(ALOAD, 1));
+                    command.add(new VarInsnNode(ILOAD, 2));
+                    command.add(new InsnNode(CALOAD));
+                    command.add(new MethodInsnNode(INVOKEVIRTUAL, "java/io/PrintStream", "print", "(C)V", false));
+                    break;
+
+                case ',':
+                    command.add(new VarInsnNode(ALOAD, 1));
+                    command.add(new VarInsnNode(ILOAD, 2));
+                    command.add(new FieldInsnNode(GETSTATIC, "java/lang/System", "in", "Ljava/io/InputStream;"));
+                    command.add(new MethodInsnNode(INVOKEVIRTUAL, "java/io/InputStream", "read", "()I", false));
+                    command.add(new InsnNode(CASTORE));
+                    break;
+
                 case '>':
                     command.add(new IincInsnNode(2, 1));
                     command.add(new VarInsnNode(ILOAD, 2));
@@ -122,7 +139,6 @@ class Compiler {
                     command.add(new InsnNode(CALOAD));
                     command.add(new InsnNode(ICONST_1));
                     command.add(new InsnNode(IADD));
-                    command.add(new InsnNode(I2C));
                     command.add(new InsnNode(CASTORE));
 
                     command.add(new VarInsnNode(ALOAD, 1));
@@ -144,7 +160,6 @@ class Compiler {
                     command.add(new InsnNode(CALOAD));
                     command.add(new InsnNode(ICONST_M1));
                     command.add(new InsnNode(IADD));
-                    command.add(new InsnNode(I2C));
                     command.add(new InsnNode(CASTORE));
 
                     command.add(new VarInsnNode(ALOAD, 1));
@@ -159,22 +174,6 @@ class Compiler {
                     command.add(label);
                     break;
 
-                case '.':
-                    command.add(new FieldInsnNode(GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;"));
-                    command.add(new VarInsnNode(ALOAD, 1));
-                    command.add(new VarInsnNode(ILOAD, 2));
-                    command.add(new InsnNode(CALOAD));
-                    command.add(new MethodInsnNode(INVOKEVIRTUAL, "java/io/PrintStream", "print", "(C)V", false));
-                    break;
-
-                case ',':
-                    command.add(new VarInsnNode(ALOAD, 1));
-                    command.add(new VarInsnNode(ILOAD, 2));
-                    command.add(new FieldInsnNode(GETSTATIC, "java/lang/System", "in", "Ljava/io/InputStream;"));
-                    command.add(new MethodInsnNode(INVOKEVIRTUAL, "java/io/InputStream", "read", "()I", false));
-                    command.add(new InsnNode(CASTORE));
-                    break;
-
                 case '[':
                     LabelNode begin = new LabelNode();
                     LabelNode end = new LabelNode();
@@ -182,7 +181,6 @@ class Compiler {
                     labl.push(end);
                     labl.push(begin);
                     command.add(begin);
-
                     command.add(new VarInsnNode(ALOAD, 1));
                     command.add(new VarInsnNode(ILOAD, 2));
                     command.add(new InsnNode(CALOAD));
@@ -199,7 +197,7 @@ class Compiler {
         ClassWriter writer = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
         classNode.accept(writer);
         byte[] bytes = writer.toByteArray();
-        try (FileOutputStream output = new FileOutputStream(new File("compiled.class"))) {
+        try (FileOutputStream output = new FileOutputStream(new File("Compiled.class"))) {
             output.write(bytes);
         }
     }
