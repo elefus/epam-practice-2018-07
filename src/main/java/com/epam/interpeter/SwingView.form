@@ -19,7 +19,7 @@
             <properties>
               <horizontalAlignment value="0"/>
               <preferredSize width="339" height="20"/>
-              <text value="Enter a path to file or the name of one of test files in the project :"/>
+              <text value="Enter an absolute path to a file or the name of one of test files in the project :"/>
             </properties>
           </component>
           <grid id="d83f0" layout-manager="BorderLayout" hgap="0" vgap="0">
