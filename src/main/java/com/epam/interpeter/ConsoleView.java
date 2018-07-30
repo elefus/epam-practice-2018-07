@@ -18,8 +18,8 @@ public class ConsoleView implements View {
     }
 
     @Override
-    public void traceCommand(int cellIndex, char command, char cellValue) {
+    public void traceCommand(char[] cellsArray, int cellIndex, char command) {
         System.out.printf("\n|| CELL : '%d' || OPERATION : '%c' || VALUE : '%d' ||",
-                cellIndex, command, (int) cellValue);
+                cellIndex, command, (int) cellsArray[cellIndex]);
     }
 }

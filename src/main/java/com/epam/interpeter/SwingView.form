@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="com.epam.interpeter.SwingView">
+  <grid id="27dc6" binding="mainPanel" layout-manager="BorderLayout" hgap="0" vgap="0">
+    <constraints>
+      <xy x="20" y="20" width="651" height="525"/>
+    </constraints>
+    <properties>
+      <preferredSize width="500" height="500"/>
+    </properties>
+    <border type="none"/>
+    <children>
+      <grid id="b6304" layout-manager="BorderLayout" hgap="0" vgap="0">
+        <constraints border-constraint="North"/>
+        <properties/>
+        <border type="none"/>
+        <children>
+          <component id="94a92" class="javax.swing.JLabel">
+            <constraints border-constraint="North"/>
+            <properties>
+              <horizontalAlignment value="0"/>
+              <preferredSize width="339" height="20"/>
+              <text value="Enter an absolute path to a file or the name of one of test files in the project :"/>
+            </properties>
+          </component>
+          <grid id="d83f0" layout-manager="BorderLayout" hgap="0" vgap="0">
+            <constraints border-constraint="South"/>
+            <properties/>
+            <border type="none"/>
+            <children>
+              <component id="c8b66" class="javax.swing.JTextField" binding="fileField">
+                <constraints border-constraint="Center"/>
+                <properties/>
+              </component>
+              <component id="e0e38" class="javax.swing.JButton" binding="openButton">
+                <constraints border-constraint="East"/>
+                <properties>
+                  <preferredSize width="74" height="23"/>
+                  <text value="Open"/>
+                </properties>
+              </component>
+              <grid id="5ccf8" layout-manager="GridLayoutManager" row-count="1" column-count="4" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                <margin top="0" left="0" bottom="0" right="0"/>
+                <constraints border-constraint="South"/>
+                <properties>
+                  <preferredSize width="500" height="30"/>
+                </properties>
+                <border type="none"/>
+                <children>
+                  <component id="23ef1" class="javax.swing.JButton" binding="runButton" default-binding="true">
+                    <constraints>
+                      <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties>
+                      <enabled value="false"/>
+                      <text value="Run"/>
+                    </properties>
+                  </component>
+                  <component id="f6545" class="javax.swing.JButton" binding="pauseButton" default-binding="true">
+                    <constraints>
+                      <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties>
+                      <enabled value="true"/>
+                      <text value="Pause"/>
+                      <visible value="false"/>
+                    </properties>
+                  </component>
+                  <component id="33b86" class="javax.swing.JSlider" binding="delaySlider">
+                    <constraints>
+                      <grid row="0" column="3" row-span="1" col-span="1" vsize-policy="0" hsize-policy="7" anchor="4" fill="0" indent="0" use-parent-layout="false">
+                        <preferred-size width="150" height="-1"/>
+                      </grid>
+                    </constraints>
+                    <properties>
+                      <maximum value="50"/>
+                      <minimum value="0"/>
+                    </properties>
+                  </component>
+                  <component id="1b833" class="javax.swing.JButton" binding="optionsButton" default-binding="true">
+                    <constraints>
+                      <grid row="0" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties>
+                      <text value="Options"/>
+                    </properties>
+                  </component>
+                </children>
+              </grid>
+            </children>
+          </grid>
+        </children>
+      </grid>
+      <grid id="26e05" layout-manager="GridLayoutManager" row-count="2" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+        <margin top="0" left="0" bottom="0" right="0"/>
+        <constraints border-constraint="Center"/>
+        <properties/>
+        <border type="line"/>
+        <children>
+          <scrollpane id="6a9b1">
+            <constraints>
+              <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="7" anchor="0" fill="3" indent="0" use-parent-layout="false">
+                <preferred-size width="0" height="40"/>
+              </grid>
+            </constraints>
+            <properties/>
+            <border type="none"/>
+            <children>
+              <component id="50892" class="javax.swing.JTextArea" binding="cellsArrayArea">
+                <constraints/>
+                <properties>
+                  <editable value="false"/>
+                  <opaque value="false"/>
+                  <rows value="1"/>
+                </properties>
+              </component>
+            </children>
+          </scrollpane>
+          <grid id="42727" binding="fileAreaPanel" layout-manager="BorderLayout" hgap="0" vgap="0">
+            <constraints>
+              <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties/>
+            <border type="none"/>
+            <children/>
+          </grid>
+        </children>
+      </grid>
+      <grid id="addee" layout-manager="FlowLayout" hgap="5" vgap="5" flow-align="1">
+        <constraints border-constraint="South"/>
+        <properties/>
+        <border type="line"/>
+        <children>
+          <component id="2f237" class="javax.swing.JLabel">
+            <constraints/>
+            <properties>
+              <enabled value="true"/>
+              <horizontalAlignment value="0"/>
+              <horizontalTextPosition value="0"/>
+              <preferredSize width="45" height="16"/>
+              <text value="Input"/>
+            </properties>
+          </component>
+          <component id="bb8e1" class="javax.swing.JTextField" binding="inputField">
+            <constraints/>
+            <properties>
+              <enabled value="false"/>
+              <preferredSize width="80" height="24"/>
+            </properties>
+          </component>
+          <component id="25c54" class="javax.swing.JButton" binding="enterButton" default-binding="true">
+            <constraints/>
+            <properties>
+              <enabled value="false"/>
+              <text value="Enter"/>
+            </properties>
+          </component>
+          <hspacer id="60f05">
+            <constraints/>
+          </hspacer>
+          <hspacer id="7ec91">
+            <constraints/>
+          </hspacer>
+          <component id="af609" class="javax.swing.JLabel">
+            <constraints/>
+            <properties>
+              <horizontalAlignment value="0"/>
+              <horizontalTextPosition value="0"/>
+              <minimumSize width="40" height="16"/>
+              <preferredSize width="45" height="16"/>
+              <text value="Output"/>
+            </properties>
+          </component>
+          <component id="2e2f" class="javax.swing.JTextField" binding="outputField">
+            <constraints/>
+            <properties>
+              <editable value="false"/>
+              <enabled value="true"/>
+              <preferredSize width="200" height="24"/>
+            </properties>
+          </component>
+        </children>
+      </grid>
+    </children>
+  </grid>
+</form>

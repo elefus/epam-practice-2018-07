@@ -20,14 +20,18 @@ public class OptionParser {
             if(args.length == 1) {
                 int size = line.hasOption("s") ? Integer.parseInt(line.getOptionValue("s")) : 30000;
                 String fileName = line.hasOption("f") ? line.getOptionValue("f") : null;
-                new SwingView().initialize(fileName, size, line.hasOption("t"));
+                new SwingView(false, 0, 0).addActionListeners();
+            } else {
+                int size = line.hasOption("s") ? Integer.parseInt(line.getOptionValue("s")) : 0;
+                int delay = line.hasOption("d") ? Integer.parseInt(line.getOptionValue("d")) : 0;
+                new SwingView(line.hasOption("t"), size, delay).addActionListeners();
             }
         } else {
             if (!line.hasOption("f"))
                 throw new MissingOptionException("Missing option : -f");
 
             int size = line.hasOption("s") ? Integer.parseInt(line.getOptionValue("s")) : 30000;
-            new Controller(line.getOptionValue("f"), new Model(size), new ConsoleView(), line.hasOption("t")).process();
+            new Controller(Controller.getSourceCode(line.getOptionValue("f")), new Model(size), new ConsoleView(), line.hasOption("t")).process();
         }
     }
 
@@ -37,9 +41,11 @@ public class OptionParser {
         Option  size = new Option("s","size", true, "Dimension of array of cells");
         Option swing = new Option("S","swing",false,"Graphic display of the program ");
         Option trace = new Option("t","trace",false,"Tracing of commands in the file");
+        Option delay = new Option("d","delay",true,"Delay of view in graphics mode (from 0 to 50)");
 
         size.setRequired(false);
         trace.setRequired(false);
+        delay.setRequired(false);
 
         Options options = new Options();
         options.addOption(help);
@@ -47,6 +53,7 @@ public class OptionParser {
         options.addOption(size);
         options.addOption(trace);
         options.addOption(swing);
+        options.addOption(delay);
         return options;
     }
 
