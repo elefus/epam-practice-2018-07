@@ -1,75 +1,136 @@
 package com.epam.interpeter;
 
-import com.epam.interpeter.Controller;
-import com.epam.interpeter.Model;
-import com.epam.interpeter.View;
-
-import java.io.*;
-import java.awt.*;
 import javax.swing.*;
-import java.awt.event.MouseEvent;
+import java.awt.*;
 import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 public class SwingView extends JFrame implements View {
-    private JPanel panel;
-    private JButton btnRun;
+    private JPanel mainPanel;
+    private JTextField inputField;
+    private JTextField outputField;
+    private JButton openButton;
+    private JButton runButton;
+    private JButton enterButton;
+    private JTextArea cellsArrayArea;
+    private JButton pauseButton;
+    private JSlider delaySlider;
+    private TextArea fileArea;
+    private JButton optionsButton;
+    private JPanel fileAreaPanel;
+    private JTextField fileField;
+
+    private int delay;
     private boolean isEnter;
-    private JButton btnEnter;
-    private JTextArea fileArea;
-    private JTextArea sizeArea;
-    private JTextArea inputArea;
-    private TextArea outputArea;
-    private JRadioButton[] options;
+    public static boolean isTrace;
+    public static int size = 45; // Only for view
 
-    public SwingView() {
-        panel = new JPanel();
-        panel.setLayout(null);
-        setSize(400, 500);
-        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+    public SwingView(boolean isTrace, int size, int delay) {
+        this.delay = delay > 0 ? delay : delaySlider.getMaximum() / 2;
+        SwingView.isTrace = isTrace;
+        SwingView.size = size > 0 ? size: SwingView.size;
+        addAreas();
+        this.setSize(500, 500);
+        this.setContentPane(mainPanel);
+        this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        this.setVisible(true);
     }
 
-    public void initialize(String fileName, int arrSize, boolean isTrace) {
-        setControlElements();
-        setOptionElements();
-        setIOElements();
-        setContentPane(panel);
-
-        if(fileName != null) {
-            options[0].setSelected(true);
-            fileArea.setText(fileName);
-            fileArea.setEditable(true);
-        }
-
-        if(arrSize != 30000) {
-            options[1].setSelected(true);
-            sizeArea.setText(Integer.toString(arrSize));
-            sizeArea.setEditable(true);
-        }
-
-        if (isTrace)
-            options[2].setSelected(true);
-
-        setVisible(true);
+    private void addAreas() {
+        fileArea = new TextArea();
+        fileArea.setBounds(0, 100, 500, 209);
+        fileArea.setEditable(false);
+        fileArea.setBackground(Color.WHITE);
+        fileAreaPanel.add(fileArea);
     }
 
-    private void startProcess() {
+    public void addActionListeners() {
+        openButton.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if(fileField.getText().equals("")) {
+                    outputField.setText("File not found");
+                } else {
+                    outputField.setText("");
+                    try {
+                        fileArea.setText(Controller.getSourceCode(fileField.getText()));
+                        runButton.setEnabled(true);
+                    } catch (IOException e1) {
+                        outputField.setText("File not found");
+                    }
+                }
+            }
+        });
+
         View view = this;
+        optionsButton.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                new OptionsWindow().addMouseListeners();
+            }
+        });
 
+       runButton.addMouseListener(new MouseAdapter() {
+           @Override
+           public void mouseClicked(MouseEvent e) {
+               if(runButton.getText().equals("Run")) {
+                   pauseButton.setVisible(true);
+                   startProcess(view);
+               } else {
+                   Controller.setStop(true);
+                   if (inputField.isEnabled())
+                       inputField.setEnabled(false);
+                   if (enterButton.isEnabled())
+                       enterButton.setEnabled(false);
+                   if (outputField.isEnabled())
+                       outputField.setEnabled(false);
+                   pauseButton.setVisible(false);
+                   runButton.setText("Run");
+               }
+           }
+       });
+
+       enterButton.addMouseListener(new MouseAdapter() {
+           @Override
+           public void mouseClicked(MouseEvent e) {
+               if (!pauseButton.getText().equals("Go"))
+                   isEnter = !isEnter;
+           }
+       });
+
+       delaySlider.addChangeListener(e -> delay = delaySlider.getValue());
+
+       pauseButton.addMouseListener(new MouseAdapter() {
+           @Override
+           public void mouseClicked(MouseEvent e) {
+               if(pauseButton.getText().equals("Pause")) {
+                   Controller.setPause(true);
+                   pauseButton.setText("Go");
+               } else {
+                   Controller.setPause(false);
+                   pauseButton.setText("Pause");
+               }
+           }
+       });
+    }
+
+    private void startProcess(View view) {
+        outputField.setText("");
         SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
             @Override
             protected Void doInBackground() {
-                String fileName = options[0].isSelected() ? fileName = fileArea.getText() : null;
-                int size = options[1].isSelected() ? Integer.parseInt(sizeArea.getText()) : 30000;
-                boolean isTrace = options[2].isSelected();
-
                 try {
-                    btnRun.setEnabled(false);
-                    new Controller(fileName, new Model(size), view, isTrace).process();
+                    Controller.setStop(false);
+                    Controller.setPause(false);
+                    runButton.setText("Stop");
+                    new Controller(fileArea.getText(), new Model(size), view, isTrace).process();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                btnRun.setEnabled(true);
+                pauseButton.setVisible(false);
+                runButton.setText("Run");
                 return null;
             }
         };
@@ -78,10 +139,9 @@ public class SwingView extends JFrame implements View {
 
     @Override
     public char inputData() {
-        inputArea.setEnabled(true);
-        inputArea.setText("");
-        btnEnter.setEnabled(true);
-        outputArea.append("\n[Enter value to input area]:");
+        inputField.setEnabled(true);
+        inputField.setText("");
+        enterButton.setEnabled(true);
 
         while (!isEnter) {
             try {
@@ -92,141 +152,38 @@ public class SwingView extends JFrame implements View {
         }
 
         isEnter = !isEnter;
-        btnEnter.setEnabled(false);
-        inputArea.setEnabled(false);
-        return inputArea.getText().charAt(0);
+        enterButton.setEnabled(false);
+        inputField.setEnabled(false);
+        if (inputField.getText().equals(""))
+            return 0;
+        else
+            return inputField.getText().charAt(0);
     }
 
     @Override
     public void outputData(char cellValue) {
-        outputArea.append(Integer.toString((int) cellValue));
+        outputField.setEnabled(true);
+        outputField.setText(outputField.getText() + Integer.toString((int)(cellValue)) + " ");
     }
 
     @Override
-    public void traceCommand(int cellIndex, char operation, char cellValue) {
-        outputArea.append("\n|| CELL : '" + (cellIndex + 1) + "' || OPERATION : '" + operation + "' || VALUE : '" +
-                           (int) cellValue + "' ||");
-    }
+    public void traceCommand(char[] cellsArray, int cellIndex, char command) {
+        cellsArrayArea.setText("");
 
-    private void setControlElements() {
-        final int screenStartX = 200;
-        final int screenStartY = 10;
-
-        JButton btnHelp = new JButton("Help");
-        btnHelp.setHorizontalAlignment(SwingConstants.CENTER);
-        btnHelp.setBounds(screenStartX + 30, screenStartY + 60, 70, 20);
-        panel.add(btnHelp);
-
-        btnRun = new JButton("Run");
-        btnRun.setHorizontalAlignment(SwingConstants.CENTER);
-        btnRun.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                inputArea.setText("");
-                outputArea.setText("");
-                startProcess();
-            }
-        });
-        btnRun.setBounds(screenStartX + 30, screenStartY + 90, 70, 20);
-        panel.add(btnRun);
-    }
-
-    private void setOptionElements() {
-        JLabel startLbl = new JLabel("Choose options:");
-        startLbl.setHorizontalAlignment(SwingConstants.CENTER);
-        startLbl.setBounds(30, 10 + 20, 120, 20);
-        panel.add(startLbl);
-
-        fileArea = new JTextArea();
-        fileArea.setFont(new Font("Tahoma", Font.PLAIN, 12));
-        fileArea.setBounds(100, 10 + 52, 90, 20);
-        fileArea.setEditable(false);
-        panel.add(fileArea);
-
-        sizeArea = new JTextArea();
-        sizeArea.setFont(new Font("Tahoma", Font.PLAIN, 12));
-        sizeArea.setBounds(100, 10 + 77, 90, 20);
-        sizeArea.setEditable(false);
-        panel.add(sizeArea);
-
-        options = new JRadioButton[3];
-        for (int i = 0; i < 3; i++) {
-            options[i] = new JRadioButton();
-            options[i].setBounds(30, 10 + (i + 2) * 25, 70, 20);
-
-            switch (i) {
-                case 0 :
-                    options[i].setText("file");
-                    options[i].addMouseListener(new MouseAdapter() {
-                        @Override
-                        public void mouseClicked(MouseEvent e) {
-                            if (!fileArea.isEditable()) {
-                                fileArea.setEditable(true);
-                            } else {
-                                fileArea.setText("");
-                                fileArea.setEditable(false);
-                            }
-                        }
-                    });
-                    break;
-
-                case 1 :
-                    options[i].setText("size");
-                    options[i].addMouseListener(new MouseAdapter() {
-                        @Override
-                        public void mouseClicked(MouseEvent e) {
-                            if (!sizeArea.isEditable()) {
-                                sizeArea.setText("30000");
-                                sizeArea.setEditable(true);
-                            } else {
-                                sizeArea.setText("");
-                                sizeArea.setEditable(false);
-                            }
-                        }
-                    });
-                    break;
-
-                case 2 :
-                    options[i].setText("trace");
-                    break;
-            }
-            panel.add(options[i]);
+        for (char cell : cellsArray) {
+            cellsArrayArea.append(Integer.toString((int) cell));
+            if (cell < 10)
+                cellsArrayArea.append("    ");
+            else if (cell < 100)
+                cellsArrayArea.append("   ");
+            else
+                cellsArrayArea.append("  ");
         }
-    }
 
-    private void setIOElements() {
-        JLabel inpLbl = new JLabel("INPUT:");
-        inpLbl.setBounds(30, 150, 80, 20);
-        panel.add(inpLbl);
-
-        // Text INPUT Area
-        inputArea = new JTextArea();
-        inputArea.setFont(new Font("Tahoma", Font.PLAIN, 12));
-        inputArea.setBounds(30, 175, 40, 20);
-        inputArea.setEditable(true);
-        inputArea.setEnabled(false);
-        panel.add(inputArea);
-
-        btnEnter = new JButton("Enter");
-        btnEnter.setBounds(120, 175, 80, 20);
-        btnEnter.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                isEnter = !isEnter;
-            }
-        });
-        btnEnter.setEnabled(false);
-        panel.add(btnEnter);
-
-        JLabel outLbl = new JLabel("OUTPUT:");
-        outLbl.setBounds(30, 210, 80, 20);
-        panel.add(outLbl);
-
-        // Text OUTPUT Area
-        outputArea = new TextArea();
-        outputArea.setFont(new Font("Tahoma", Font.PLAIN, 12));
-        outputArea.setBounds(30, 235, 340, 210);
-        outputArea.setEditable(false);
-        panel.add(outputArea);
+        try {
+            TimeUnit.MILLISECONDS.sleep(delay);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 }
